@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.datatools.connectivity.ui.driverUIContributor">
+      <driverUIContributor
+            class="org.eclipse.datatools.enablement.firebird.ui.connection.FirebirdDriverUIContributor"
+            driverTemplateID="org.eclipse.datatools.enablement.firebird.2_1.driver"
+            id="org.eclipse.datatools.enablement.firebird.ui.connection.2_1.driverUIContributor">
+      </driverUIContributor>
+   </extension>
+   <extension
+         point="org.eclipse.datatools.connectivity.connectionProfile">
+      <newWizard
+            class="org.eclipse.datatools.enablement.firebird.ui.connection.NewFirebirdConnectionProfileWizard"
+            description="Create a Firebird connection profile"
+            icon="icons/new_db_element.gif"
+            id="org.eclipse.datatools.enablement.firebird.ui.NewConnectionProfileWizard"
+            name="Firebird"
+            profile="org.eclipse.datatools.enablement.firebird.connectionProfile">
+      </newWizard>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.propertyPages">
+      <page
+            class="org.eclipse.datatools.enablement.firebird.ui.connection.FirebirdProfilePropertyPage"
+            id="org.eclipse.datatools.enablement.firebird.connectionProfile.profileProperties"
+            name="Firebird Profile Properties">
+         <filter
+               name="org.eclipse.datatools.profile.property.id"
+               value="org.eclipse.datatools.enablement.firebird.connectionProfile"/>
+         <enabledWhen>
+            <instanceof
+                  value="org.eclipse.datatools.connectivity.IConnectionProfile">
+            </instanceof>
+         </enabledWhen>
+      </page>
+   </extension>
+
+</plugin>

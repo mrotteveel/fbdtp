@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: DTP Enablement Firebird Database Plug-in
+Bundle-SymbolicName: org.eclipse.datatools.enablement.firebird;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: org.eclipse.datatools.enablement.firebird.Activator
+Bundle-Vendor: Eclipse.org
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.datatools.modelbase.sql,
+ org.eclipse.datatools.connectivity,
+ org.eclipse.datatools.connectivity.sqm.core,
+ org.eclipse.datatools.modelbase.dbdefinition
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Eclipse-LazyStart: true
+Export-Package: org.eclipse.datatools.enablement.firebird,
+ org.eclipse.datatools.enablement.firebird.connection

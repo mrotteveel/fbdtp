@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.datatools.connectivity.driverExtension">
+      <category
+            description="Firebird JDBC Drivers"
+            id="org.eclipse.datatools.enablement.firebird.driver.category"
+            name="Firebird"
+            parentCategory="org.eclipse.datatools.connectivity.db.driverCategory">
+      </category>
+      <category
+            description="Firebird 2.1 JDBC Drivers"
+            id="org.eclipse.datatools.enablement.firebird.2_1.category"
+            name="Firebird 2.1"
+            parentCategory="org.eclipse.datatools.enablement.firebird.driver.category">
+      </category>
+      <driverTemplate
+            createDefault="false"
+            description="Firebird JDBC Driver"
+            emptyJarListIsOK="false"
+            id="org.eclipse.datatools.enablement.firebird.2_1.driver"
+            jarList="jaybird-full-2.1.6.jar"
+            name="Firebird JDBC Driver"
+            parentCategory="org.eclipse.datatools.enablement.firebird.2_1.category">
+         <properties>
+            <property
+                  generated="false"
+                  id="org.eclipse.datatools.connectivity.db.driverClass"
+                  name="DriverClass"
+                  required="true"
+                  value="org.firebirdsql.jdbc.FBDriver"
+                  visible="true">
+            </property>
+            <property
+                  generated="false"
+                  id="org.eclipse.datatools.connectivity.db.vendor"
+                  name="Vendor"
+                  required="true"
+                  value="Firebird"
+                  visible="false">
+            </property>
+            <property
+                  generated="false"
+                  id="org.eclipse.datatools.connectivity.db.version"
+                  name="Version"
+                  required="true"
+                  value="2.1"
+                  visible="false">
+            </property>
+            <property
+                  generated="false"
+                  id="org.eclipse.datatools.connectivity.db.databaseName"
+                  name="Database Name"
+                  required="true"
+                  value="testdb"
+                  visible="true">
+            </property>
+            <property
+                  generated="false"
+                  id="org.eclipse.datatools.connectivity.db.URL"
+                  name="Connection URL"
+                  required="true"
+                  value="jdbc:firebirdsql:host/3050:/path/to/testdb.fdb"
+                  visible="true">
+            </property>
+            <property
+                  generated="false"
+                  id="org.eclipse.datatools.connectivity.db.username"
+                  name="User ID"
+                  required="true"
+                  value="sysdba"
+                  visible="true">
+            </property>
+         </properties>
+      </driverTemplate>
+   </extension>
+   <extension
+         point="org.eclipse.datatools.connectivity.connectionProfile">
+      <connectionFactory
+            class="org.eclipse.datatools.enablement.firebird.connection.FirebirdJDBCConnectionFactory"
+            id="java.sql.Connection"
+            name="Firebird Connection Factory"
+            profile="org.eclipse.datatools.enablement.firebird.connectionProfile">
+      </connectionFactory>
+      <connectionProfile
+            category="org.eclipse.datatools.connectivity.db.category"
+            icon="icons/jdbc_16.gif"
+            id="org.eclipse.datatools.enablement.firebird.connectionProfile"
+            name="Firebird Connection Profile"
+            pingFactory="org.eclipse.datatools.enablement.firebird.connection.FirebirdJDBCConnectionFactory">
+      </connectionProfile>
+   </extension>
+   <extension
+         point="org.eclipse.datatools.connectivity.sqm.core.catalog">
+      <catalog
+            product="Firebird"
+            provider="org.eclipse.datatools.enablement.firebird.catalog.FirebirdCatalogProvider"
+            version="2.1">
+      </catalog>
+   </extension>
+   <extension
+         point="org.eclipse.datatools.connectivity.sqm.core.ddlGeneration">
+      <generator
+            class="org.eclipse.datatools.enablement.firebird.ddl.FirebirdDdlGenerator"
+            product="Firebird"
+            version="2.1">
+      </generator>
+   </extension>
+</plugin>

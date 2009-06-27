@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.datatools.sqltools.editor.core.dbConfigurations">
+      <dbConfiguration
+            configurationClass="org.eclipse.datatools.sqltools.db.firebird.core.FirebirdConfiguration"
+            default="true"
+            product="Firebird"
+            supportsDebugging="false"
+            version="2.1">
+      </dbConfiguration>
+   </extension>
+
+</plugin>

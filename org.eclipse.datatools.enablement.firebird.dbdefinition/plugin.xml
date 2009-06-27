@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.datatools.connectivity.sqm.core.databaseDefinition">
+      <definition
+            file="runtime/vendors/Firebird/Firebird_2_1.xmi"
+            product="Firebird"
+            productDisplayString="Firebird"
+            version="2.1"
+            versionDisplayString="2.1">
+      </definition>
+   </extension>
+
+</plugin>

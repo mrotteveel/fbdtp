@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Firebird UI Enablement Plug-in
+Bundle-SymbolicName: org.eclipse.datatools.enablement.firebird.ui;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: org.eclipse.datatools.enablement.firebird.ui.Activator
+Bundle-Vendor: Eclipse.org
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.datatools.connectivity,
+ org.eclipse.datatools.connectivity.ui,
+ org.eclipse.ui,
+ org.eclipse.datatools.enablement.firebird
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Eclipse-LazyStart: true

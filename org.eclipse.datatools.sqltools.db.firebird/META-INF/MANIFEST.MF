@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Firebird SQL Tools Plug-in
+Bundle-SymbolicName: org.eclipse.datatools.sqltools.db.firebird;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: org.eclipse.datatools.sqltools.db.firebird.Activator
+Bundle-Vendor: Eclipse.org
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.datatools.sqltools.editor.core,
+ org.eclipse.datatools.enablement.firebird
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Eclipse-LazyStart: true
