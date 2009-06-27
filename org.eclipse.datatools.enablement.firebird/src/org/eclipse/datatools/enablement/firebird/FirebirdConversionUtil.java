@@ -8,6 +8,7 @@ import java.util.Map;
 /**
  * 
  * @author Roman Rokytskyy
+ * @author Mark Rotteveel
  * 
  */
 public class FirebirdConversionUtil {
@@ -15,54 +16,54 @@ public class FirebirdConversionUtil {
 	private static Map charSets = new HashMap();
 	private static Map charSetsInversed = new HashMap();
 	static {
-		charSets.put("NONE", new Integer(0));
-		charSets.put("OCTETS", new Integer(1));
-		charSets.put("ASCII", new Integer(2));
-		charSets.put("UNICODE_FSS", new Integer(3));
-		charSets.put("UTF8", new Integer(4));
-		charSets.put("SJIS_0208", new Integer(5));
-		charSets.put("EUCJ_0208", new Integer(6));
-		charSets.put("DOS437", new Integer(10));
-		charSets.put("DOS850", new Integer(11));
-		charSets.put("DOS865", new Integer(12));
-		charSets.put("ISO8859_1", new Integer(21));
-		charSets.put("ISO8859_2", new Integer(22));
-		charSets.put("ISO8859_3", new Integer(23));
-		charSets.put("ISO8859_4", new Integer(34));
-		charSets.put("ISO8859_5", new Integer(35));
-		charSets.put("ISO8859_6", new Integer(36));
-		charSets.put("ISO8859_7", new Integer(37));
-		charSets.put("ISO8859_8", new Integer(38));
-		charSets.put("ISO8859_9", new Integer(39));
-		charSets.put("ISO8859_13 ", new Integer(40));
-		charSets.put("DOS852", new Integer(45));
-		charSets.put("DOS857", new Integer(46));
-		charSets.put("DOS860", new Integer(13));
-		charSets.put("DOS861", new Integer(47));
-		charSets.put("DOS863", new Integer(14));
-		charSets.put("CYRL", new Integer(50));
-		charSets.put("DOS737", new Integer(9));
-		charSets.put("DOS775", new Integer(15));
-		charSets.put("DOS858", new Integer(16));
-		charSets.put("DOS862", new Integer(17));
-		charSets.put("DOS864", new Integer(18));
-		charSets.put("DOS866", new Integer(48));
-		charSets.put("DOS869", new Integer(49));
-		charSets.put("WIN1250", new Integer(51));
-		charSets.put("WIN1251", new Integer(52));
-		charSets.put("WIN1252", new Integer(53));
-		charSets.put("WIN1253", new Integer(54));
-		charSets.put("WIN1254", new Integer(55));
-		charSets.put("NEXT", new Integer(19));
-		charSets.put("WIN1255", new Integer(58));
-		charSets.put("WIN1256", new Integer(59));
-		charSets.put("WIN1257", new Integer(60));
-		charSets.put("KSC_5601 ", new Integer(44));
-		charSets.put("BIG_5", new Integer(56));
-		charSets.put("GB_2312", new Integer(57));
-		charSets.put("KOI8R", new Integer(63));
-		charSets.put("KOI8U", new Integer(64));
-		charSets.put("WIN1258", new Integer(65));
+		charSets.put("NONE", Integer.valueOf(0));
+		charSets.put("OCTETS", Integer.valueOf(1));
+		charSets.put("ASCII", Integer.valueOf(2));
+		charSets.put("UNICODE_FSS", Integer.valueOf(3));
+		charSets.put("UTF8", Integer.valueOf(4));
+		charSets.put("SJIS_0208", Integer.valueOf(5));
+		charSets.put("EUCJ_0208", Integer.valueOf(6));
+		charSets.put("DOS437", Integer.valueOf(10));
+		charSets.put("DOS850", Integer.valueOf(11));
+		charSets.put("DOS865", Integer.valueOf(12));
+		charSets.put("ISO8859_1", Integer.valueOf(21));
+		charSets.put("ISO8859_2", Integer.valueOf(22));
+		charSets.put("ISO8859_3", Integer.valueOf(23));
+		charSets.put("ISO8859_4", Integer.valueOf(34));
+		charSets.put("ISO8859_5", Integer.valueOf(35));
+		charSets.put("ISO8859_6", Integer.valueOf(36));
+		charSets.put("ISO8859_7", Integer.valueOf(37));
+		charSets.put("ISO8859_8", Integer.valueOf(38));
+		charSets.put("ISO8859_9", Integer.valueOf(39));
+		charSets.put("ISO8859_13 ", Integer.valueOf(40));
+		charSets.put("DOS852", Integer.valueOf(45));
+		charSets.put("DOS857", Integer.valueOf(46));
+		charSets.put("DOS860", Integer.valueOf(13));
+		charSets.put("DOS861", Integer.valueOf(47));
+		charSets.put("DOS863", Integer.valueOf(14));
+		charSets.put("CYRL", Integer.valueOf(50));
+		charSets.put("DOS737", Integer.valueOf(9));
+		charSets.put("DOS775", Integer.valueOf(15));
+		charSets.put("DOS858", Integer.valueOf(16));
+		charSets.put("DOS862", Integer.valueOf(17));
+		charSets.put("DOS864", Integer.valueOf(18));
+		charSets.put("DOS866", Integer.valueOf(48));
+		charSets.put("DOS869", Integer.valueOf(49));
+		charSets.put("WIN1250", Integer.valueOf(51));
+		charSets.put("WIN1251", Integer.valueOf(52));
+		charSets.put("WIN1252", Integer.valueOf(53));
+		charSets.put("WIN1253", Integer.valueOf(54));
+		charSets.put("WIN1254", Integer.valueOf(55));
+		charSets.put("NEXT", Integer.valueOf(19));
+		charSets.put("WIN1255", Integer.valueOf(58));
+		charSets.put("WIN1256", Integer.valueOf(59));
+		charSets.put("WIN1257", Integer.valueOf(60));
+		charSets.put("KSC_5601 ", Integer.valueOf(44));
+		charSets.put("BIG_5", Integer.valueOf(56));
+		charSets.put("GB_2312", Integer.valueOf(57));
+		charSets.put("KOI8R", Integer.valueOf(63));
+		charSets.put("KOI8U", Integer.valueOf(64));
+		charSets.put("WIN1258", Integer.valueOf(65));
 
 		// create also an inverted map
 		for (Iterator iter = charSets.entrySet().iterator(); iter.hasNext();) {
@@ -89,7 +90,7 @@ public class FirebirdConversionUtil {
 	private static final short blob_type = 261;
 
 	public static String getCharacterSet(int charSetId) {
-		return (String) charSetsInversed.get(new Integer(charSetId));
+		return (String) charSetsInversed.get(Integer.valueOf(charSetId));
 	}
 
 	public static int getJdbcType(int firebirdType) {
