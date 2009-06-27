@@ -1,7 +1,6 @@
 package org.eclipse.datatools.enablement.firebird.catalog;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
 import org.eclipse.datatools.connectivity.sqm.core.rte.ICatalogObject;
 import org.eclipse.datatools.connectivity.sqm.core.rte.RefreshManager;
