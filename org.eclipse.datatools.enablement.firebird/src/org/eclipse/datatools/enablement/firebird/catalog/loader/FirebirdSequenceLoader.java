@@ -93,9 +93,9 @@ public class FirebirdSequenceLoader extends JDBCBaseLoader {
 	}
 
 	/**
-	 * Loads the "UDT" objects from the database. This method uses the result
-	 * set from createResultSet() to load the "UDT" objects from the server.
-	 * This method first checks the name of the "UDT" to determine whether or
+	 * Loads the "Sequence" objects from the database. This method uses the result
+	 * set from createResultSet() to load the "Sequence" objects from the server.
+	 * This method first checks the name of the "Sequence" to determine whether or
 	 * not it should be filtered. If it is not filtered, it checks to see if an
 	 * object with that name was loaded previously. If it finds an existing
 	 * object, it refreshes that object and adds it to the containment list. If
@@ -178,10 +178,10 @@ public class FirebirdSequenceLoader extends JDBCBaseLoader {
 	}
 
 	/**
-	 * Removes the specified UDTs from the model.
+	 * Removes the specified Sequences from the model.
 	 * 
 	 * @param existingSequences
-	 *            the UDTs to be removed from the model.
+	 *            the Sequences to be removed from the model.
 	 */
 	public void clearSequences(List existingSequences) {
 		existingSequences.clear();
