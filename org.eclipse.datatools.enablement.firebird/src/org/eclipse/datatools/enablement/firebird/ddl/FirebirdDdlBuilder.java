@@ -33,7 +33,6 @@ import org.eclipse.datatools.modelbase.sql.tables.Table;
 import org.eclipse.datatools.modelbase.sql.tables.Trigger;
 import org.eclipse.datatools.modelbase.sql.tables.ViewTable;
 import org.eclipse.emf.common.util.EList;
-import org.omg.PortableInterceptor.ACTIVE;
 
 
 /**
