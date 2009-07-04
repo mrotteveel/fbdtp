@@ -24,54 +24,51 @@ import org.eclipse.emf.ecore.EStructuralFeature;
  */
 public class FirebirdSchema extends JDBCSchema implements ICatalogObject {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private FirebirdDatabase catalogDatabase;
-    
+
     private boolean systemSchema;
-    
+
     private Object sequenceLoadMutex = new Object();
     private boolean sequencesLoaded = false;
-    
+
     public FirebirdSchema(FirebirdDatabase catalogDatabase, boolean systemSchema) {
         this.catalogDatabase = catalogDatabase;
         this.systemSchema = systemSchema;
     }
-    
+
     public Catalog getCatalog() {
         return catalogDatabase;
     }
+
+    public synchronized void refresh() {
+        super.refresh();
+
+        // RefreshManager.getInstance().referesh(this);
+    }
+
+    public boolean isSystemObject() {
+        return false;
+    }
     
-	public synchronized void refresh() {
-	    super.refresh();
-	    
-		//RefreshManager.getInstance().referesh(this);
-	}
+    public Connection getConnection() {
+        Database database = getDatabase();
+        return ((FirebirdDatabase) database).getConnection();
+    }
 
-	public boolean isSystemObject() {
-		return false;
-	}
+    public Database getCatalogDatabase() {
+        return getDatabase();
+    }
 
-	public Connection getConnection() {
-		Database database = this.getDatabase();
-		return ((FirebirdDatabase) database).getConnection();
-	}
-
-	public Database getCatalogDatabase() {
-		return this.getDatabase();
-	}
-
-	public boolean eIsSet(EStructuralFeature eFeature) {
-		int id = eDerivedStructuralFeatureID(eFeature);
-		if (id == SQLSchemaPackage.SCHEMA__TABLES) {
-			this.getTables();
-		} else if (id == SQLSchemaPackage.SCHEMA__ROUTINES) {
-			this.getRoutines();
-		} else if (id == SQLSchemaPackage.SCHEMA__TRIGGERS) {
-		    this.getTriggers();
+    public boolean eIsSet(EStructuralFeature eFeature) {
+        switch(eDerivedStructuralFeatureID(eFeature)) {
+            case SQLSchemaPackage.SCHEMA__TRIGGERS:
+                getTriggers();
+                break;
         }
-		return super.eIsSet(eFeature);
-	}
+        return super.eIsSet(eFeature);
+    }
 
     protected JDBCTableLoader createTableLoader() {
         return new FirebirdTableLoader(this, systemSchema);
@@ -81,34 +78,29 @@ public class FirebirdSchema extends JDBCSchema implements ICatalogObject {
         return new FirebirdRoutineLoader(this, systemSchema);
     }
 
-    public EList getBuiltInFunctions() {
-        // TODO Auto-generated method stub
-        return super.getBuiltInFunctions();
-    }
-
     public EList getSequences() {
         synchronized (sequenceLoadMutex) {
             if (!sequencesLoaded)
                 loadSequences();
         }
-        
+
         return super.getSequences();
     }
-    
+
     protected void loadSequences() {
         synchronized (sequenceLoadMutex) {
             boolean deliver = eDeliver();
             try {
                 List container = super.getSequences();
                 List existingSequences = new ArrayList(container);
-                
+
                 eSetDeliver(false);
 
                 container.clear();
 
-                getSequenceLoader().loadSequences(container, existingSequences);
-
-                getSequenceLoader().clearSequences(existingSequences);
+                final FirebirdSequenceLoader sequenceLoader = getSequenceLoader();
+                sequenceLoader.loadSequences(container, existingSequences);
+                sequenceLoader.clearSequences(existingSequences);
 
                 sequencesLoaded = true;
             }
@@ -120,7 +112,7 @@ public class FirebirdSchema extends JDBCSchema implements ICatalogObject {
             }
         }
     }
-    
+
     protected FirebirdSequenceLoader getSequenceLoader() {
         return new FirebirdSequenceLoader(this, systemSchema);
     }
