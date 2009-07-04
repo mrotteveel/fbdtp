@@ -20,6 +20,7 @@ import org.eclipse.emf.ecore.EClass;
 /**
  * 
  * @author Roman Rokytskyy
+ * @author Mark Rotteveel
  * 
  */
 public class FirebirdRoutineLoader extends JDBCRoutineLoader {
@@ -47,46 +48,53 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 				ConnectionFilter.STORED_PROCEDURE_FILTER), systemSchema);
 	}
 
-	private static final String LOAD_ALL_ROUTINES_SQL = "SELECT "
-			+ "  cast('PROC' AS VARCHAR(4)) AS routine_type, "
-			+ "  p.rdb$procedure_name as procedure_name, "
-			+ "  p.rdb$description as routine_description, "
-			+ "  p.rdb$procedure_source as routine_source, "
-			+ "  cast(null as varchar(31)) as routine_module_name, "
-			+ "  cast(null as varchar(31)) as routine_entry_point, "
-			+ "  cast(null as integer) as routine_return_argument, "
-			+ "  cast(null as varchar(31)) as remarks FROM "
-			+ "  rdb$procedures p WHERE p.rdb$system_flag = ? "
-			+ "UNION SELECT "
-			+ "  cast('FUNC' AS VARCHAR(4)) AS routine_type, "
-			+ "  f.rdb$function_name as procedure_name, "
-			+ "  f.rdb$description as routine_description, "
-			+ "  cast(null as blob sub_type text) as routine_source, "
-			+ "  f.rdb$module_name as routine_module_name, "
-			+ "  f.rdb$entrypoint as routine_entry_point, "
-			+ "  f.rdb$return_argument as routine_return_argument, "
-			+ "  cast(null as varchar(31)) as remarks " + "FROM "
-			+ "  rdb$functions f WHERE f.rdb$system_flag = ? ";
+	private static final String LOAD_ALL_ROUTINES_SQL = 
+		      "SELECT"
+			+ "  cast('PROC' AS VARCHAR(4)) AS routine_type,"
+			+ "  p.rdb$procedure_name as procedure_name,"
+			+ "  p.rdb$description as routine_description,"
+			+ "  p.rdb$procedure_source as routine_source,"
+			+ "  cast(null as varchar(31)) as routine_module_name,"
+			+ "  cast(null as varchar(31)) as routine_entry_point,"
+			+ "  cast(null as integer) as routine_return_argument,"
+			+ "  cast(null as varchar(31)) as remarks " 
+			+ "FROM rdb$procedures p "
+			+ "WHERE p.rdb$system_flag = ? "
+			+ "UNION SELECT"
+			+ "  cast('FUNC' AS VARCHAR(4)) AS routine_type,"
+			+ "  f.rdb$function_name as procedure_name,"
+			+ "  f.rdb$description as routine_description,"
+			+ "  cast(null as blob sub_type text) as routine_source,"
+			+ "  f.rdb$module_name as routine_module_name,"
+			+ "  f.rdb$entrypoint as routine_entry_point,"
+			+ "  f.rdb$return_argument as routine_return_argument,"
+			+ "  cast(null as varchar(31)) as remarks "
+			+ "FROM rdb$functions f " 
+			+ "WHERE f.rdb$system_flag = ? ";
 
-	private static final String LOAD_FILTER_ROUTINES_SQL = "SELECT "
-			+ "  cast('PROC' AS VARCHAR(4)) AS routine_type, "
-			+ "  p.rdb$procedure_name as procedure_name, "
-			+ "  p.rdb$procedure_source as routine_source, "
-			+ "  cast(null as varchar(31)) as routine_module_name, "
-			+ "  cast(null as varchar(31)) as routine_entry_point, "
-			+ "  cast(null as integer) as routine_return_argument, "
-			+ "  cast(null as varchar(31)) as remarks " + "FROM "
-			+ "  rdb$procedures p WHERE p.rdb$system_flag = ? "
-			+ "AND p.rdb$procedure_name LIKE ? UNION SELECT "
-			+ "  cast('FUNC' AS VARCHAR(4)) AS routine_type, "
-			+ "  f.rdb$function_name as procedure_name, "
-			+ "  cast(null as blob sub_type text) as routine_source, "
-			+ "  f.rdb$module_name as routine_module_name, "
-			+ "  f.rdb$entrypoint as routine_entry_point, "
-			+ "  f.rdb$return_argument as routine_return_argument, "
-			+ "  cast(null as varchar(31)) as remarks FROM "
-			+ "  rdb$functions f WHERE f.rdb$system_flag = ? "
-			+ "AND f.rdb$function_name LIKE ? ";
+	private static final String LOAD_FILTER_ROUTINES_SQL = 
+		    "SELECT"
+			+ "  cast('PROC' AS VARCHAR(4)) AS routine_type,"
+			+ "  p.rdb$procedure_name as procedure_name,"
+			+ "  p.rdb$procedure_source as routine_source,"
+			+ "  cast(null as varchar(31)) as routine_module_name,"
+			+ "  cast(null as varchar(31)) as routine_entry_point,"
+			+ "  cast(null as integer) as routine_return_argument,"
+			+ "  cast(null as varchar(31)) as remarks "
+			+ "FROM rdb$procedures p "
+			+ "WHERE p.rdb$system_flag = ?"
+			+ "  AND p.rdb$procedure_name LIKE ? " 
+			+ "UNION SELECT"
+			+ "  cast('FUNC' AS VARCHAR(4)) AS routine_type,"
+			+ "  f.rdb$function_name as procedure_name,"
+			+ "  cast(null as blob sub_type text) as routine_source,"
+			+ "  f.rdb$module_name as routine_module_name,"
+			+ "  f.rdb$entrypoint as routine_entry_point,"
+			+ "  f.rdb$return_argument as routine_return_argument,"
+			+ "  cast(null as varchar(31)) as remarks "
+			+ "FROM rdb$functions f " 
+			+ "WHERE f.rdb$system_flag = ?"
+			+ "  AND f.rdb$function_name LIKE ?";
 
 	protected ResultSet createResultSet() throws SQLException {
 		try {
@@ -97,13 +105,13 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 			PreparedStatement stmt = connection
 					.prepareStatement(filterPattern == null ? LOAD_ALL_ROUTINES_SQL
 							: LOAD_FILTER_ROUTINES_SQL);
+			final int useSystemSchema = systemSchema ? 1 : 0;
+			stmt.setInt(1, useSystemSchema);
 			if (filterPattern == null) {
-				stmt.setInt(1, systemSchema ? 1 : 0);
-				stmt.setInt(2, systemSchema ? 1 : 0);
+				stmt.setInt(2, useSystemSchema);
 			} else {
-				stmt.setInt(1, systemSchema ? 1 : 0);
 				stmt.setString(2, filterPattern);
-				stmt.setInt(3, systemSchema ? 1 : 0);
+				stmt.setInt(3, useSystemSchema);
 				stmt.setString(4, filterPattern);
 			}
 
@@ -151,11 +159,37 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 
 		return routineFactory.createRoutine(rs);
 	}
+	
+	/**
+	 * Base Factory for creating routines.
+	 *
+	 */
+	protected abstract class FBRoutineFactory implements IRoutineFactory {
+		/**
+		 * Creates and initializes a new Procedure object from the meta-data in
+		 * the result set.
+		 * 
+		 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineLoader.IRoutineFactory#createRoutine(java.sql.ResultSet)
+		 */
+		public Routine createRoutine(ResultSet rs) throws SQLException {
+			Routine routine = newRoutine();
+			initialize(routine, rs);
+			// routine.setSchema(schema);
+			return routine;
+		}
+		
+		/**
+		 * Internal factory method.
+		 * 
+		 * @return a new Routine object
+		 */
+		protected abstract Routine newRoutine();
+	}
 
 	/**
-	 * Base factory implementation for SP.
+	 * Factory implementation for stored procedures.
 	 */
-	public class FirebirdProcedureFactory implements IRoutineFactory {
+	public class FirebirdProcedureFactory extends FBRoutineFactory {
 
 		/**
 		 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineLoader.IRoutineFactory#getRoutineEClass()
@@ -166,28 +200,9 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 			return SQLRoutinesPackage.eINSTANCE.getProcedure();
 		}
 
-		/**
-		 * Creates and initializes a new Procedure object from the meta-data in
-		 * the result set.
-		 * 
-		 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineLoader.IRoutineFactory#createRoutine(java.sql.ResultSet)
-		 */
-		public Routine createRoutine(ResultSet rs) throws SQLException {
-			FirebirdProcedure retVal = (FirebirdProcedure) newRoutine();
-			initialize(retVal, rs);
-			// retVal.setSchema(schema);
-			return retVal;
-		}
 
-		/**
-		 * Internal factory method. The default implementation returns a new
-		 * JDBCProcedure object.
-		 * 
-		 * @return a new Routine object
-		 */
 		protected Routine newRoutine() {
-			return new FirebirdProcedure(
-					(FirebirdSchema) FirebirdRoutineLoader.this.getSchema());
+			return new FirebirdProcedure((FirebirdSchema)FirebirdRoutineLoader.this.getSchema());
 		}
 
 		/**
@@ -204,19 +219,22 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 		 */
 		public void initialize(Routine routine, ResultSet rs)
 				throws SQLException {
+			
+			FirebirdProcedure fbProc = (FirebirdProcedure)routine;
 
-			routine.setName(rs.getString(COLUMN_ROUTINE_NAME).trim());
-			routine.setDescription(rs.getString(COLUMN_ROUTINE_DESCRIPTION));
-
-			if (FirebirdRoutineLoader.this.isProcedure(rs))
-				((FirebirdProcedure) routine).setSourceCode(rs
-						.getString(COLUMN_ROUTINE_SOURCE));
+			fbProc.setName(rs.getString(COLUMN_ROUTINE_NAME).trim());
+			fbProc.setDescription(rs.getString(COLUMN_ROUTINE_DESCRIPTION));
+			fbProc.setSourceCode(rs.getString(COLUMN_ROUTINE_SOURCE));
 
 			// routine.getParameters();
 		}
 	}
 
-	public class FirebirdUDFFactory implements IRoutineFactory {
+	/**
+	 * Factory implementation for User Defined Functions (UDF).
+	 *
+	 */
+	public class FirebirdUDFFactory extends FBRoutineFactory {
 		/**
 		 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineLoader.IRoutineFactory#getRoutineEClass()
 		 * 
@@ -226,28 +244,8 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 			return SQLRoutinesPackage.eINSTANCE.getUserDefinedFunction();
 		}
 
-		/**
-		 * Creates and initializes a new Procedure object from the meta-data in
-		 * the result set.
-		 * 
-		 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineLoader.IRoutineFactory#createRoutine(java.sql.ResultSet)
-		 */
-		public Routine createRoutine(ResultSet rs) throws SQLException {
-			FirebirdUDF retVal = (FirebirdUDF) newRoutine();
-			initialize(retVal, rs);
-			// retVal.setSchema(schema);
-			return retVal;
-		}
-
-		/**
-		 * Internal factory method. The default implementation returns a new
-		 * JDBCProcedure object.
-		 * 
-		 * @return a new Routine object
-		 */
 		protected Routine newRoutine() {
-			return new FirebirdUDF((FirebirdSchema) FirebirdRoutineLoader.this
-					.getSchema());
+			return new FirebirdUDF(FirebirdRoutineLoader.this.getSchema());
 		}
 
 		/**
@@ -265,16 +263,13 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 		public void initialize(Routine routine, ResultSet rs)
 				throws SQLException {
 
-			routine.setName(rs.getString(COLUMN_ROUTINE_NAME).trim());
-			routine.setDescription(rs.getString(COLUMN_ROUTINE_DESCRIPTION));
-
-			((FirebirdUDF) routine).setEntryPoint(rs.getString(
-					COLUMN_ENTRY_POINT).trim());
-			((FirebirdUDF) routine).setModuleName(rs.getString(
-					COLUMN_MODULE_NAME).trim());
-
-			((FirebirdUDF) routine).setReturnArgument(rs
-					.getInt(COLUMN_RETURN_ARGUMENT));
+			FirebirdUDF fbUDF = (FirebirdUDF)routine;
+			
+			fbUDF.setName(rs.getString(COLUMN_ROUTINE_NAME).trim());
+			fbUDF.setDescription(rs.getString(COLUMN_ROUTINE_DESCRIPTION));
+			fbUDF.setEntryPoint(rs.getString(COLUMN_ENTRY_POINT).trim());
+			fbUDF.setModuleName(rs.getString(COLUMN_MODULE_NAME).trim());
+			fbUDF.setReturnArgument(rs.getInt(COLUMN_RETURN_ARGUMENT));
 
 			// routine.getParameters();
 		}
