@@ -4,7 +4,7 @@
    <extension
          point="org.eclipse.datatools.connectivity.ui.driverUIContributor">
       <driverUIContributor
-            class="org.eclipse.datatools.enablement.firebird.ui.connection.FirebirdDriverUIContributor"
+            class="org.eclipse.datatools.enablement.firebird.ui.connection.FirebirdOtherDriverUIContributor"
             driverTemplateID="org.eclipse.datatools.enablement.firebird.2_1.driver"
             id="org.eclipse.datatools.enablement.firebird.ui.connection.2_1.driverUIContributor">
       </driverUIContributor>
