@@ -7,6 +7,17 @@ Bundle-Activator: org.eclipse.datatools.sqltools.db.firebird.Activator
 Bundle-Vendor: Eclipse.org
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.datatools.sqltools.editor.core,
- org.eclipse.datatools.enablement.firebird
+ org.eclipse.datatools.enablement.firebird,
+ org.eclipse.datatools.sqltools.sqleditor,
+ org.eclipse.ui,
+ org.eclipse.ui.ide,
+ org.eclipse.datatools.sqltools.db.generic,
+ org.eclipse.debug.core,
+ org.eclipse.datatools.sqltools.routineeditor,
+ org.eclipse.datatools.sqltools.data.ui,
+ org.eclipse.datatools.connectivity.sqm.core.ui,
+ org.eclipse.datatools.sqltools.data.core,
+ org.eclipse.datatools.sqltools.common.ui,
+ org.eclipse.ui.navigator
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Eclipse-LazyStart: true

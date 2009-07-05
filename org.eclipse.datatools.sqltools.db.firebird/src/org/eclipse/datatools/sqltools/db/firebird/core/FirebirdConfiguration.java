@@ -3,6 +3,12 @@ package org.eclipse.datatools.sqltools.db.firebird.core;
 import org.eclipse.datatools.enablement.firebird.IFirebirdConnectionProfileConstants;
 import org.eclipse.datatools.sqltools.core.DatabaseVendorDefinitionId;
 import org.eclipse.datatools.sqltools.core.SQLDevToolsConfiguration;
+import org.eclipse.datatools.sqltools.core.services.ConnectionService;
+import org.eclipse.datatools.sqltools.core.services.ExecutionService;
+import org.eclipse.datatools.sqltools.core.services.SQLService;
+import org.eclipse.datatools.sqltools.db.firebird.core.services.FirebirdConnectionService;
+import org.eclipse.datatools.sqltools.db.firebird.core.services.FirebirdExecutionService;
+import org.eclipse.datatools.sqltools.db.firebird.core.services.FirebirdSQLService;
 
 /**
  * Firebird implementation of SQLDevToolsConfiguration.
@@ -13,17 +19,32 @@ import org.eclipse.datatools.sqltools.core.SQLDevToolsConfiguration;
  */
 public class FirebirdConfiguration extends SQLDevToolsConfiguration {
 
-    private static FirebirdConfiguration _instance = new FirebirdConfiguration();
+    private static FirebirdConfiguration _instance = null;
     public static final String[] FIREBIRD_ALIASES = {"Firebird", "Jaybird"};
     
-    protected FirebirdConfiguration() {
-    	// TODO Set DatabaseVendorDefinition
+    public FirebirdConfiguration() {
+        _instance = this;
     }
     
 	public static SQLDevToolsConfiguration getDefaultInstance() {
+	    if (_instance == null) {
+	        return new FirebirdConfiguration();
+	    }
 		return _instance;
 	}
 	
+    public ConnectionService getConnectionService() {
+        return new FirebirdConnectionService();
+    }
+    
+    public SQLService getSQLService() {
+        return new FirebirdSQLService();
+    }
+    
+    public ExecutionService getExecutionService() {
+        return new FirebirdExecutionService();
+    }
+    
 	// TODO Implement other specific methods
 	
     public boolean recognize(String product, String version) {

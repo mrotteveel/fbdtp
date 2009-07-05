@@ -11,5 +11,39 @@
             version="2.1">
       </dbConfiguration>
    </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="org.eclipse.datatools.sqltools.db.firebird.editor.FirebirdSQLEditor"
+            contributorClass="org.eclipse.datatools.sqltools.db.firebird.editor.FirebirdSQLEditorActionContributor"
+            default="false"
+            id="org.eclipse.datatools.sqltools.db.firebird.editor.FirebirdSQLEditor"
+            name="Firebird ad-hoc SQL Editor">
+      </editor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.navigator.navigatorContent">
+      <actionProvider
+            class="org.eclipse.datatools.sqltools.db.firebird.editor.actions.OpenEditorActionProvider"
+            id="org.eclipse.datatools.sqltools.db.firebird.editor.actions.OpenEditorActionProvider">
+      </actionProvider>
+      <actionProvider
+            class="org.eclipse.datatools.sqltools.db.firebird.editor.actions.FirebirdLoadDataActionProvider"
+            dependsOn="org.eclipse.datatools.sqltools.tabledataeditor.actions.popup.DataGroupProvider"
+            id="org.eclipse.datatools.sqltools.db.firebird.editor.actions.FirebirdLoadDataActionProvider"
+            overrides="org.eclipse.datatools.sqltools.data.internal.load">
+      </actionProvider>
+   </extension>
+   <extension
+         point="org.eclipse.ui.navigator.viewer">
+      <viewerActionBinding
+            viewerId="org.eclipse.datatools.connectivity.DataSourceExplorerNavigator">
+         <includes>
+            <actionExtension
+                  pattern="org.eclipse.datatools.sqltools.db.firebird.editor.actions.*">
+            </actionExtension>
+         </includes>
+      </viewerActionBinding>
+   </extension>
 
 </plugin>
