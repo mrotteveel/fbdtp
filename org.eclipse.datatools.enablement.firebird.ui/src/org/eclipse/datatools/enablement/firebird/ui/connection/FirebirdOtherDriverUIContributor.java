@@ -8,5 +8,5 @@ import org.eclipse.datatools.connectivity.ui.wizards.OtherDriverUIContributor;
  * @author Mark Rotteveel
  * 
  */
-public class FirebirdDriverUIContributor extends OtherDriverUIContributor {
+public class FirebirdOtherDriverUIContributor extends OtherDriverUIContributor {
 }
