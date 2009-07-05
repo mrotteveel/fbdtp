@@ -72,6 +72,13 @@
                   value="sysdba"
                   visible="true">
             </property>
+            <property
+                  generated="false"
+                  id="org.eclipse.datatools.connectivity.db.password"
+                  name="Password"
+                  required="false"
+                  visible="true">
+            </property>
          </properties>
       </driverTemplate>
    </extension>
@@ -88,7 +95,8 @@
             icon="icons/jdbc_16.gif"
             id="org.eclipse.datatools.enablement.firebird.connectionProfile"
             name="Firebird Connection Profile"
-            pingFactory="org.eclipse.datatools.enablement.firebird.connection.FirebirdJDBCConnectionFactory">
+            pingFactory="org.eclipse.datatools.enablement.firebird.connection.FirebirdJDBCConnectionFactory"
+            propertiesPersistenceHook="org.eclipse.datatools.enablement.firebird.FirebirdPasswordPersistenceHook">
       </connectionProfile>
    </extension>
    <extension
