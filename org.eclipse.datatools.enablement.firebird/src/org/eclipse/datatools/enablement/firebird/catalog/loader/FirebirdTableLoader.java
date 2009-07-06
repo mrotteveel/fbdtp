@@ -35,34 +35,38 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 
 	private static final String SYSTEM_TABLE_SELECT = ""
 			+ "SELECT "
-			+ "    NULL AS table_cat, "
-			+ "    NULL AS table_schem, "
-			+ "    r.rdb$relation_name AS table_name, "
-			+ "    'SYSTEM TABLE' AS table_type, "
-			+ "    r.rdb$description AS remarks, "
-			+ "    r.rdb$owner_name AS owner_name, "
-			+ "    (SELECT count(*) FROM rdb$triggers t "
-			+ "    WHERE t.rdb$relation_name = r.rdb$relation_name) AS trigger_count "
-			+ "FROM " + "    rdb$relations r " + "WHERE "
-			+ "    r.rdb$system_flag = 1";
+			+ " NULL AS table_cat,"
+			+ " NULL AS table_schem,"
+			+ " r.rdb$relation_name AS table_name,"
+			+ " 'SYSTEM TABLE' AS table_type,"
+			+ " r.rdb$description AS remarks,"
+			+ " r.rdb$owner_name AS owner_name,"
+			+ " (SELECT count(*) FROM rdb$triggers t"
+			+ "  WHERE t.rdb$relation_name = r.rdb$relation_name) AS trigger_count "
+			+ "FROM"
+			+ " rdb$relations r "
+			+ "WHERE"
+			+ " r.rdb$system_flag = 1";
 
 	private static final String USER_TABLE_SELECT = ""
 			+ "SELECT "
-			+ "    NULL AS table_cat, "
-			+ "    NULL AS table_schem, "
-			+ "    r.rdb$relation_name AS table_name, "
-			+ "    CASE "
-			+ "        WHEN r.rdb$view_source IS NOT NULL THEN 'VIEW' "
-			+ "        ELSE 'TABLE' "
-			+ "    END AS table_type, "
-			+ "    r.rdb$description AS remarks, "
-			+ "    r.rdb$owner_name AS owner_name, "
-			+ "    (SELECT count(*) FROM rdb$triggers t "
-			+ "    WHERE t.rdb$relation_name = r.rdb$relation_name) AS trigger_count "
-			+ "FROM " + "    rdb$relations r " + "WHERE "
-			+ "    r.rdb$system_flag = 0";
+			+ " NULL AS table_cat,"
+			+ " NULL AS table_schem,"
+			+ " r.rdb$relation_name AS table_name,"
+			+ " CASE"
+			+ "  WHEN r.rdb$view_source IS NOT NULL THEN 'VIEW'"
+			+ "  ELSE 'TABLE'"
+			+ " END AS table_type,"
+			+ " r.rdb$description AS remarks,"
+			+ " r.rdb$owner_name AS owner_name,"
+			+ " (SELECT count(*) FROM rdb$triggers t"
+			+ "  WHERE t.rdb$relation_name = r.rdb$relation_name) AS trigger_count "
+			+ "FROM"
+			+ " rdb$relations r "
+			+ "WHERE"
+			+ " r.rdb$system_flag = 0";
 
-	private boolean systemTables;
+	private final boolean systemTables;
 
 	public FirebirdTableLoader(ICatalogObject catalogObject,
 			IConnectionFilterProvider connectionFilterProvider,
@@ -126,13 +130,13 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 	}
 
 	protected void replaceTableFactories() {
-		super.registerTableFactory(TYPE_TABLE, new TableFactory());
-		super.registerTableFactory(TYPE_VIEW, new ViewFactory());
+		super.registerTableFactory(TYPE_TABLE, new FBTableFactory());
+		super.registerTableFactory(TYPE_VIEW, new FBViewFactory());
 		super.registerTableFactory(TYPE_GLOBAL_TEMPORARY,
-				new GlobalTempTableFactory());
+				new FBGlobalTempTableFactory());
 	}
 
-	public static class TableFactory extends JDBCTableLoader.TableFactory {
+	public static class FBTableFactory extends JDBCTableLoader.TableFactory {
 		protected Table newTable() {
 			return new FirebirdTable();
 		}
@@ -146,7 +150,7 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 
 	}
 
-	public static class ViewFactory extends JDBCTableLoader.TableFactory {
+	public static class FBViewFactory extends JDBCTableLoader.TableFactory {
 		protected Table newTable() {
 			return new FirebirdView();
 		}
@@ -169,7 +173,7 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 
 	}
 
-	public static class GlobalTempTableFactory extends
+	public static class FBGlobalTempTableFactory extends
 			JDBCTableLoader.TableFactory {
 		protected Table newTable() {
 			return new JDBCTemporaryTable();
@@ -182,25 +186,26 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 			return result;
 		}
 	}
+	
+	private static final String TRIGGER_SELECT =
+	      "SELECT"
+	    + " t.rdb$trigger_name trigger_name,"
+	    + " t.rdb$trigger_sequence trigger_seq,"
+	    + " t.rdb$trigger_type trigger_type,"
+	    + " t.rdb$trigger_inactive trigger_inactive,"
+	    + " t.rdb$system_flag system_flag "
+	    + "FROM"
+	    + " rdb$triggers t "
+	    + "WHERE"
+	    + " t.rdb$relation_name = ?"
+	    + " AND t.rdb$system_flag = 0 "
+	    + " ORDER BY 2";
 
 	public static void loadTriggers(Connection connection, Schema schema,
 			Table table, EList triggerList) throws SQLException {
-		StringBuffer sb = new StringBuffer();
-		sb.append("SELECT ").append(" ").append(
-				"t.rdb$trigger_name trigger_name,").append(" ").append(
-				"t.rdb$trigger_sequence trigger_seq,").append(" ").append(
-				"t.rdb$trigger_type trigger_type,").append(" ").append(
-				"t.rdb$trigger_inactive trigger_inactive,").append(" ").append(
-				"t.rdb$system_flag system_flag ").append(" ").append(
-				"FROM rdb$triggers t").append(" ").append(
-				"WHERE t.rdb$relation_name = ?").append(" ").append(
-				"AND t.rdb$system_flag = 0").append(" ").append("ORDER BY 2");
-
-		PreparedStatement stmt = connection.prepareStatement(sb.toString());
+		PreparedStatement stmt = connection.prepareStatement(TRIGGER_SELECT);
 		try {
-
 			stmt.setString(1, table.getName());
-
 			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
 				FirebirdTrigger trigger = new FirebirdTrigger();
@@ -212,29 +217,28 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 						&& rs.getInt("TRIGGER_INACTIVE") == 0);
 
 				trigger.setFirebirdTriggerType(rs.getInt("TRIGGER_TYPE"));
-
 				trigger.setSchema(schema);
-
 				triggerList.add(trigger);
 			}
 		} finally {
 			stmt.close();
 		}
 	}
+	
+	private static final String VIEW_QUERY_SELECT =
+	      "SELECT"
+	    + " r.rdb$view_source view_source "
+	    + "FROM"
+	    + " rdb$relations r "
+	    + "WHERE"
+	    + " r.rdb$relation_name = ?";
 
 	public static String loadViewQuery(Connection connection, Schema schema,
 			ViewTable view) throws SQLException {
-		StringBuffer sb = new StringBuffer();
-		sb.append("SELECT ").append(" ")
-				.append("r.rdb$view_source view_source").append(" ").append(
-						"FROM rdb$relations r").append(" ").append(
-						"WHERE r.rdb$relation_name = ?");
 
-		PreparedStatement stmt = connection.prepareStatement(sb.toString());
+	    PreparedStatement stmt = connection.prepareStatement(VIEW_QUERY_SELECT);
 		try {
-
 			stmt.setString(1, view.getName());
-
 			ResultSet rs = stmt.executeQuery();
 			if (!rs.next())
 				throw new SQLException();
@@ -243,9 +247,7 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 
 			if (rs.next())
 				throw new SQLException();
-
 			return query;
-
 		} finally {
 			stmt.close();
 		}
