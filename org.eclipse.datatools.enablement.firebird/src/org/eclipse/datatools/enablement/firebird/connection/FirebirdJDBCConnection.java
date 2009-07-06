@@ -37,16 +37,11 @@ public class FirebirdJDBCConnection extends DriverConnectionBase {
         Properties props = getConnectionProfile().getBaseProperties();
         Properties connectionProps = new Properties();
         
-        String driverClass = getDriverDefinition().getProperty(
-                IFBConstants.DRIVER_CLASS_PROP_ID);
-        String connectURL = props
-                .getProperty(IFBConstants.URL_PROP_ID);
-        String uid = props
-                .getProperty(IFBConstants.USERNAME_PROP_ID);
-        String pwd = props
-                .getProperty(IFBConstants.PASSWORD_PROP_ID);
-        String nameValuePairs = props
-                .getProperty(IFBConstants.CONNECTION_PROPERTIES_PROP_ID);
+        String driverClass = getDriverDefinition().getProperty(IFBConstants.DRIVER_CLASS_PROP_ID);
+        String connectURL = props.getProperty(IFBConstants.URL_PROP_ID);
+        String uid = props.getProperty(IFBConstants.USERNAME_PROP_ID);
+        String pwd = props.getProperty(IFBConstants.PASSWORD_PROP_ID);
+        String nameValuePairs = props.getProperty(IFBConstants.CONNECTION_PROPERTIES_PROP_ID);
         String propDelim = ",";//$NON-NLS-1$
 
         if (uid != null) {
@@ -57,15 +52,10 @@ public class FirebirdJDBCConnection extends DriverConnectionBase {
         }
 
         if (nameValuePairs != null && nameValuePairs.length() > 0) {
-            String[] pairs = parseString(nameValuePairs, ","); //$NON-NLS-1$
-            String addPairs = ""; //$NON-NLS-1$
+            String[] pairs = parseString(nameValuePairs, propDelim); //$NON-NLS-1$
             for (int i = 0; i < pairs.length; i++) {
                 String[] namevalue = parseString(pairs[i], "="); //$NON-NLS-1$
                 connectionProps.setProperty(namevalue[0], namevalue[1]);
-                if (i == 0 || i < pairs.length - 1) {
-                    addPairs = addPairs + propDelim;
-                }
-                addPairs = addPairs + pairs[i];
             }
         }
 
