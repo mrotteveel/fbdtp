@@ -22,22 +22,27 @@ import org.eclipse.datatools.modelbase.sql.tables.Table;
  */
 public class FirebirdIndexLoader extends JDBCTableIndexLoader {
 
-	private static final String GET_INDEX_INFO = "" + "SELECT"
-			+ "  ind.RDB$RELATION_NAME AS TABLE_NAME "
-			+ ", ind.RDB$UNIQUE_FLAG AS NON_UNIQUE "
-			+ ", ind.RDB$INDEX_NAME as INDEX_NAME "
-			+ ", ise.rdb$field_position+1 as ORDINAL_POSITION "
-			+ ", ise.rdb$field_name as COLUMN_NAME "
-			+ ", ind.RDB$INDEX_TYPE as ASC_OR_DESC " + "FROM "
-			+ "  rdb$indices ind, " + "  rdb$index_segments ise " + "WHERE "
-			+ "  ind.rdb$index_name = ise.rdb$index_name " + "AND "
-			+ "  ind.rdb$relation_name = ? " + "AND "
-			+ "  ind.rdb$system_flag = ?" + "AND "
-			+ "  NOT EXISTS (SELECT * FROM rdb$relation_constraints rc "
-			+ "WHERE rc.rdb$index_name = ind.rdb$index_name) "
+	private static final String GET_INDEX_INFO = 
+	          "SELECT"
+			+ " ind.RDB$RELATION_NAME AS TABLE_NAME,"
+			+ " ind.RDB$UNIQUE_FLAG AS NON_UNIQUE,"
+			+ " ind.RDB$INDEX_NAME as INDEX_NAME,"
+			+ " ise.rdb$field_position+1 as ORDINAL_POSITION,"
+			+ " ise.rdb$field_name as COLUMN_NAME,"
+			+ " ind.RDB$INDEX_TYPE as ASC_OR_DESC "
+			+ "FROM"
+			+ " rdb$indices ind,"
+			+ " rdb$index_segments ise "
+			+ "WHERE"
+			+ " ind.rdb$index_name = ise.rdb$index_name"
+			+ " AND ind.rdb$relation_name = ?"
+			+ " AND ind.rdb$system_flag = ?"
+			+ " AND NOT EXISTS ("
+			+ "  SELECT * FROM rdb$relation_constraints rc"
+			+ "  WHERE rc.rdb$index_name = ind.rdb$index_name) "
 			+ "ORDER BY 2, 3, 4";
 
-	private boolean systemIndexes;
+	private final boolean systemIndexes;
 
 	public FirebirdIndexLoader(ICatalogObject catalogObject,
 			IConnectionFilterProvider connectionFilterProvider,
@@ -83,10 +88,6 @@ public class FirebirdIndexLoader extends JDBCTableIndexLoader {
 		} catch (SQLException e) {
 		}
 
-	}
-
-	protected Index createIndex() {
-		return super.createIndex();
 	}
 
 	public void loadIndexes(List containmentList, Collection existingIndexes)
