@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -28,6 +29,17 @@ import org.eclipse.datatools.modelbase.sql.tables.Table;
  * 
  */
 public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
+    
+    private static final Map CASCADE_TYPE_MAP;
+    static {
+        Map cascadeMap = new HashMap();
+        cascadeMap.put("CASCADE", ReferentialActionType.CASCADE_LITERAL);
+        cascadeMap.put("RESTRICT", ReferentialActionType.RESTRICT_LITERAL);
+        cascadeMap.put("SET DEFAULT", ReferentialActionType.SET_DEFAULT_LITERAL);
+        cascadeMap.put("SET NULL", ReferentialActionType.SET_NULL_LITERAL);
+        cascadeMap.put("NO ACTION", ReferentialActionType.NO_ACTION_LITERAL);
+        CASCADE_TYPE_MAP = Collections.unmodifiableMap(cascadeMap);
+    }
 
 	public FirebirdConstraintLoader(ICatalogObject catalogObject,
 			IConnectionFilterProvider connectionFilterProvider) {
@@ -126,51 +138,40 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 					containmentList.add(fk);
 
 					String updateRule = rs.getString(COLUMN_UPDATE_RULE);
-					if (updateRule != null)
+					if (updateRule != null) {
 						updateRule = updateRule.trim();
+					}
+					
+					ReferentialActionType updateType = (ReferentialActionType)CASCADE_TYPE_MAP.get(updateRule);
+					if (updateType == null) {
+					    updateType = ReferentialActionType.NO_ACTION_LITERAL;
+					}
+					fk.setOnUpdate(updateType);
 
-					if ("CASCADE".equals(updateRule))
-						fk.setOnUpdate(ReferentialActionType.CASCADE_LITERAL);
-					else if ("RESTRICT".equals(updateRule))
-						fk.setOnUpdate(ReferentialActionType.RESTRICT_LITERAL);
-					else if ("SET DEFAULT".equals(updateRule))
-						fk.setOnUpdate(ReferentialActionType.SET_DEFAULT_LITERAL);
-					else if ("SET NULL".equals(updateRule))
-						fk.setOnUpdate(ReferentialActionType.SET_NULL_LITERAL);
-					else if ("NO ACTION".equals(updateRule))
-						fk.setOnUpdate(ReferentialActionType.NO_ACTION_LITERAL);
-					else
-						fk.setOnUpdate(ReferentialActionType.NO_ACTION_LITERAL);
 
 					String deleteRule = rs.getString(COLUMN_DELETE_RULE);
-					if ("CASCADE".equals(deleteRule))
-						fk.setOnDelete(ReferentialActionType.CASCADE_LITERAL);
-					else if ("RESTRICT".equals(deleteRule))
-						fk.setOnDelete(ReferentialActionType.RESTRICT_LITERAL);
-					else if ("SET DEFAULT".equals(deleteRule))
-						fk.setOnDelete(ReferentialActionType.SET_DEFAULT_LITERAL);
-					else if ("SET NULL".equals(deleteRule))
-						fk.setOnDelete(ReferentialActionType.SET_NULL_LITERAL);
-					else if ("NO ACTION".equals(deleteRule))
-						fk.setOnDelete(ReferentialActionType.NO_ACTION_LITERAL);
-					else
-						fk.setOnDelete(ReferentialActionType.NO_ACTION_LITERAL);
+					if (deleteRule != null) {
+					    deleteRule = deleteRule.trim();
+					}
+					ReferentialActionType deleteType = (ReferentialActionType)CASCADE_TYPE_MAP.get(deleteRule);
+					if (deleteType == null) {
+					    deleteType = ReferentialActionType.NO_ACTION_LITERAL;
+					}
+					fk.setOnDelete(deleteType);
 
 					fk.setDeferrable(false);
 
-					fk.setUniqueConstraint(findUniqueConstraint(rs
-							.getString(COLUMN_PKTABLE_CAT), rs
-							.getString(COLUMN_PKTABLE_SCHEM), rs.getString(
-							COLUMN_PKTABLE_NAME).trim(), rs.getString(
-							COLUMN_PK_NAME).trim()));
-
+					fk.setUniqueConstraint(findUniqueConstraint(
+					        rs.getString(COLUMN_PKTABLE_CAT),
+					        rs.getString(COLUMN_PKTABLE_SCHEM),
+					        rs.getString(COLUMN_PKTABLE_NAME).trim(),
+					        rs.getString(COLUMN_PK_NAME).trim()));
 					constraints.put(fkName, fk);
 					constraintColumns.put(fkName, new TreeMap());
-
 				}
-				((Map) constraintColumns.get(fkName)).put(Integer.valueOf(rs
-						.getShort(COLUMN_KEY_SEQ)), findColumn(rs.getString(
-						COLUMN_FKCOLUMN_NAME).trim()));
+				((Map) constraintColumns.get(fkName)).put(
+				        Integer.valueOf(rs.getShort(COLUMN_KEY_SEQ)),
+				        findColumn(rs.getString(COLUMN_FKCOLUMN_NAME).trim()));
 			}
 			for (Iterator it = constraints.entrySet().iterator(); it.hasNext();) {
 				Map.Entry entry = (Map.Entry) it.next();
