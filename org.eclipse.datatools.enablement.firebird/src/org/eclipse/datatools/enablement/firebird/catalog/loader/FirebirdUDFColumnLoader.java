@@ -75,7 +75,6 @@ public class FirebirdUDFColumnLoader extends JDBCUDFColumnLoader {
         
         if (pdtds.size() == 0) 
             return; 
-        
         PredefinedDataTypeDefinition pdtd = null;
         for (Iterator it = pdtds.iterator(); pdtd == null && it.hasNext();) {
             
@@ -93,7 +92,7 @@ public class FirebirdUDFColumnLoader extends JDBCUDFColumnLoader {
         if (pdtd == null) {
             pdtd = getDatabaseDefinition().getPredefinedDataTypeDefinition(typeName);
         }
-
+        // TODO Statement below conflicts with statement 7 lines down
         if (pdtd == null)
             return;
         
@@ -109,37 +108,37 @@ public class FirebirdUDFColumnLoader extends JDBCUDFColumnLoader {
         
         if (pdtd.isLengthSupported()) {
             EStructuralFeature feature = pdt.eClass().getEStructuralFeature("length"); //$NON-NLS-1$
-            pdt.eSet(feature, new Integer(charLength));
+            pdt.eSet(feature, Integer.valueOf(charLength));
         }
         
         if (pdtd.isPrecisionSupported()) {
             EStructuralFeature feature = pdt.eClass().getEStructuralFeature("precision"); //$NON-NLS-1$
-            pdt.eSet(feature, new Integer(fieldPrecision));
+            pdt.eSet(feature, Integer.valueOf(fieldPrecision));
         }
         
         if (pdtd.isScaleSupported()) {
             EStructuralFeature feature = pdt.eClass().getEStructuralFeature("scale"); //$NON-NLS-1$
-            pdt.eSet(feature, new Integer(-fieldScale));
+            pdt.eSet(feature, Integer.valueOf(-fieldScale));
         }
         udfParameter.setDataType(pdt);
     }
 
     private static final String UDF_PARAMETERS = ""
-        + "SELECT "
-        + "  cast('PARAM_' || rdb$argument_position AS varchar(31)) AS column_name, "
-        + "  fa.rdb$argument_position AS argument_position, "
-        + "  fa.rdb$mechanism AS mechanism, "
-        + "  fa.rdb$field_type AS field_type, "
-        + "  fa.rdb$field_scale AS field_scale, "
-        + "  fa.rdb$field_length AS field_length, "
-        + "  fa.rdb$field_sub_type AS field_subtype, "
-        + "  fa.rdb$character_set_id AS charset_id, "
-        + "  fa.rdb$field_precision AS field_precision, "
-        + "  fa.rdb$character_length AS char_len "
+        + "SELECT"
+        + " cast('PARAM_' || rdb$argument_position AS varchar(31)) AS column_name,"
+        + " fa.rdb$argument_position AS argument_position,"
+        + " fa.rdb$mechanism AS mechanism,"
+        + " fa.rdb$field_type AS field_type,"
+        + " fa.rdb$field_scale AS field_scale,"
+        + " fa.rdb$field_length AS field_length,"
+        + " fa.rdb$field_sub_type AS field_subtype,"
+        + " fa.rdb$character_set_id AS charset_id,"
+        + " fa.rdb$field_precision AS field_precision,"
+        + " fa.rdb$character_length AS char_len "
         + "FROM "
-        + "  rdb$function_arguments fa "
+        + " rdb$function_arguments fa "
         + "WHERE "
-        + "  fa.rdb$function_name = ?"
+        + " fa.rdb$function_name = ?"
         ;
     
     protected ResultSet createParametersResultSet() throws SQLException {
