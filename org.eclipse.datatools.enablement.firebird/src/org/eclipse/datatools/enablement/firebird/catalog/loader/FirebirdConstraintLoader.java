@@ -24,28 +24,19 @@ import org.eclipse.datatools.modelbase.sql.tables.Table;
 /**
  * 
  * @author Roman Rokytskyy
+ * @author Mark Rotteveel
  * 
  */
 public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 
-// TODO Remove or find usage
-//	private boolean showSystemObjects;
-
 	public FirebirdConstraintLoader(ICatalogObject catalogObject,
-			IConnectionFilterProvider connectionFilterProvider,
-			boolean showSystemObjects) {
+			IConnectionFilterProvider connectionFilterProvider) {
 
 		super(catalogObject, connectionFilterProvider);
-
-//		this.showSystemObjects = showSystemObjects;
 	}
 
-	public FirebirdConstraintLoader(ICatalogObject catalogObject,
-			boolean showSystemObjects) {
-
+	public FirebirdConstraintLoader(ICatalogObject catalogObject) {
 		super(catalogObject);
-
-//		this.showSystemObjects = showSystemObjects;
 	}
 
 	protected void closeResultSet(ResultSet rs) {
@@ -55,29 +46,36 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 		}
 	}
 
-	private static final String GET_IMPORTED_KEYS_START = "select"
-			+ " null as PKTABLE_CAT " + " ,null as PKTABLE_SCHEM "
-			+ " ,PK.RDB$RELATION_NAME as PKTABLE_NAME "
-			+ " ,ISP.RDB$FIELD_NAME as PKCOLUMN_NAME "
-			+ " ,null as FKTABLE_CAT " + " ,null as FKTABLE_SCHEM "
-			+ " ,FK.RDB$RELATION_NAME as FKTABLE_NAME "
-			+ " ,ISF.RDB$FIELD_NAME as FKCOLUMN_NAME "
-			+ " ,CAST ((ISP.RDB$FIELD_POSITION + 1) as SMALLINT) as KEY_SEQ "
-			+ " ,RC.RDB$UPDATE_RULE as UPDATE_RULE "
-			+ " ,RC.RDB$DELETE_RULE as DELETE_RULE "
-			+ " ,PK.RDB$CONSTRAINT_NAME as PK_NAME "
-			+ " ,FK.RDB$CONSTRAINT_NAME as FK_NAME "
-			+ " ,null as DEFERRABILITY " + " from "
-			+ " RDB$RELATION_CONSTRAINTS PK "
-			+ " ,RDB$RELATION_CONSTRAINTS FK " + " ,RDB$REF_CONSTRAINTS RC "
-			+ " ,RDB$INDEX_SEGMENTS ISP " + " ,RDB$INDEX_SEGMENTS ISF "
-			+ " WHERE " + "  FK.RDB$RELATION_NAME = ? " + "AND "
-			+ " FK.RDB$CONSTRAINT_NAME = RC.RDB$CONSTRAINT_NAME "
-			+ " and PK.RDB$CONSTRAINT_NAME = RC.RDB$CONST_NAME_UQ "
-			+ " and ISP.RDB$INDEX_NAME = PK.RDB$INDEX_NAME "
-			+ " and ISF.RDB$INDEX_NAME = FK.RDB$INDEX_NAME "
-			+ " and ISP.RDB$FIELD_POSITION = ISF.RDB$FIELD_POSITION "
-			+ " order by 3, 9 ";
+	private static final String GET_IMPORTED_KEYS_START = 
+	          "SELECT"
+			+ " null as PKTABLE_CAT," 
+			+ " null as PKTABLE_SCHEM,"
+			+ " PK.RDB$RELATION_NAME as PKTABLE_NAME,"
+			+ " ISP.RDB$FIELD_NAME as PKCOLUMN_NAME,"
+			+ " null as FKTABLE_CAT,"
+			+ " null as FKTABLE_SCHEM,"
+			+ " FK.RDB$RELATION_NAME as FKTABLE_NAME,"
+			+ " ISF.RDB$FIELD_NAME as FKCOLUMN_NAME,"
+			+ " CAST ((ISP.RDB$FIELD_POSITION + 1) as SMALLINT) as KEY_SEQ,"
+			+ " RC.RDB$UPDATE_RULE as UPDATE_RULE,"
+			+ " RC.RDB$DELETE_RULE as DELETE_RULE,"
+			+ " PK.RDB$CONSTRAINT_NAME as PK_NAME,"
+			+ " FK.RDB$CONSTRAINT_NAME as FK_NAME,"
+			+ " null as DEFERRABILITY "
+			+ "FROM"
+			+ " RDB$RELATION_CONSTRAINTS PK,"
+			+ " RDB$RELATION_CONSTRAINTS FK,"
+			+ " RDB$REF_CONSTRAINTS RC,"
+			+ " RDB$INDEX_SEGMENTS ISP,"
+			+ " RDB$INDEX_SEGMENTS ISF "
+			+ "WHERE"
+			+ " FK.RDB$RELATION_NAME = ?"
+			+ " AND FK.RDB$CONSTRAINT_NAME = RC.RDB$CONSTRAINT_NAME"
+			+ " AND PK.RDB$CONSTRAINT_NAME = RC.RDB$CONST_NAME_UQ"
+			+ " AND ISP.RDB$INDEX_NAME = PK.RDB$INDEX_NAME "
+			+ " AND ISF.RDB$INDEX_NAME = FK.RDB$INDEX_NAME "
+			+ " AND ISP.RDB$FIELD_POSITION = ISF.RDB$FIELD_POSITION "
+			+ " ORDER BY 3, 9";
 
 	protected ResultSet createForeignKeyResultSet() throws SQLException {
 		try {
@@ -136,8 +134,7 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 					else if ("RESTRICT".equals(updateRule))
 						fk.setOnUpdate(ReferentialActionType.RESTRICT_LITERAL);
 					else if ("SET DEFAULT".equals(updateRule))
-						fk
-								.setOnUpdate(ReferentialActionType.SET_DEFAULT_LITERAL);
+						fk.setOnUpdate(ReferentialActionType.SET_DEFAULT_LITERAL);
 					else if ("SET NULL".equals(updateRule))
 						fk.setOnUpdate(ReferentialActionType.SET_NULL_LITERAL);
 					else if ("NO ACTION".equals(updateRule))
@@ -151,8 +148,7 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 					else if ("RESTRICT".equals(deleteRule))
 						fk.setOnDelete(ReferentialActionType.RESTRICT_LITERAL);
 					else if ("SET DEFAULT".equals(deleteRule))
-						fk
-								.setOnDelete(ReferentialActionType.SET_DEFAULT_LITERAL);
+						fk.setOnDelete(ReferentialActionType.SET_DEFAULT_LITERAL);
 					else if ("SET NULL".equals(deleteRule))
 						fk.setOnDelete(ReferentialActionType.SET_NULL_LITERAL);
 					else if ("NO ACTION".equals(deleteRule))
@@ -172,7 +168,7 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 					constraintColumns.put(fkName, new TreeMap());
 
 				}
-				((Map) constraintColumns.get(fkName)).put(new Integer(rs
+				((Map) constraintColumns.get(fkName)).put(Integer.valueOf(rs
 						.getShort(COLUMN_KEY_SEQ)), findColumn(rs.getString(
 						COLUMN_FKCOLUMN_NAME).trim()));
 			}
@@ -193,19 +189,22 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 		}
 	}
 
-	private static final String GET_PRIMARY_KEYS_START = ""
-			+ "SELECT "
-			+ "  null as TABLE_CAT, "
-			+ "  null as TABLE_SCHEM, "
-			+ "  RC.RDB$RELATION_NAME as TABLE_NAME, "
-			+ "  ISGMT.RDB$FIELD_NAME as COLUMN_NAME, "
-			+ "  CAST ((ISGMT.RDB$FIELD_POSITION + 1) as SMALLINT) as KEY_SEQ, "
-			+ "  RC.RDB$CONSTRAINT_NAME as PK_NAME " + "FROM "
-			+ "  RDB$RELATION_CONSTRAINTS RC, " + "  RDB$INDEX_SEGMENTS ISGMT "
-			+ "WHERE " + "  RC.RDB$RELATION_NAME = ? " + "AND "
-			+ "  RC.RDB$INDEX_NAME = ISGMT.RDB$INDEX_NAME " + "AND "
-			+ "  RC.RDB$CONSTRAINT_TYPE = 'PRIMARY KEY' " + "ORDER BY "
-			+ "  ISGMT.RDB$FIELD_NAME ";
+	private static final String GET_PRIMARY_KEYS_START = 
+	          "SELECT "
+			+ " null as TABLE_CAT,"
+			+ " null as TABLE_SCHEM,"
+			+ " RC.RDB$RELATION_NAME as TABLE_NAME,"
+			+ " ISGMT.RDB$FIELD_NAME as COLUMN_NAME,"
+			+ " CAST ((ISGMT.RDB$FIELD_POSITION + 1) as SMALLINT) as KEY_SEQ,"
+			+ " RC.RDB$CONSTRAINT_NAME as PK_NAME "
+			+ "FROM"
+			+ " RDB$RELATION_CONSTRAINTS RC,"
+			+ " RDB$INDEX_SEGMENTS ISGMT "
+			+ "WHERE"
+			+ " RC.RDB$RELATION_NAME = ?"
+			+ " AND RC.RDB$INDEX_NAME = ISGMT.RDB$INDEX_NAME"
+			+ " AND RC.RDB$CONSTRAINT_TYPE = 'PRIMARY KEY' "
+			+ "ORDER BY ISGMT.RDB$FIELD_NAME";
 
 	protected ResultSet createPrimaryKeyResultSet() throws SQLException {
 		try {
@@ -254,7 +253,7 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 						pk.setName(pkName);
 					}
 				}
-				columns.put(new Integer(rs.getShort(COLUMN_KEY_SEQ)),
+				columns.put(Integer.valueOf(rs.getShort(COLUMN_KEY_SEQ)),
 						findColumn(rs.getString(COLUMN_COLUMN_NAME).trim()));
 			}
 			for (Iterator it = columns.values().iterator(); it.hasNext();) {
@@ -268,32 +267,36 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 		}
 	}
 
-	private static final String GET_EXPORTED_KEYS_START = ""
-			+ "SELECT "
+	private static final String GET_EXPORTED_KEYS_START = 
+	          "SELECT "
 			// +"  null as PKTABLE_CAT "
 			// +" ,null as PKTABLE_SCHEM "
-			+ " PK.RDB$RELATION_NAME as PKTABLE_NAME "
-			+ " ,ISP.RDB$FIELD_NAME as PKCOLUMN_NAME "
+			+ " PK.RDB$RELATION_NAME as PKTABLE_NAME,"
+			+ " ISP.RDB$FIELD_NAME as PKCOLUMN_NAME,"
 			// +" ,null as FKTABLE_CAT "
 			// +" ,null as FKTABLE_SCHEM "
-			+ " ,FK.RDB$RELATION_NAME as FKTABLE_NAME "
-			+ " ,ISF.RDB$FIELD_NAME as FKCOLUMN_NAME "
-			+ " ,CAST ((ISP.RDB$FIELD_POSITION + 1) as SMALLINT) as KEY_SEQ "
-			+ " ,RC.RDB$UPDATE_RULE as UPDATE_RULE "
-			+ " ,RC.RDB$DELETE_RULE as DELETE_RULE "
-			+ " ,PK.RDB$CONSTRAINT_NAME as PK_NAME "
-			+ " ,FK.RDB$CONSTRAINT_NAME as FK_NAME "
+			+ " FK.RDB$RELATION_NAME as FKTABLE_NAME,"
+			+ " ISF.RDB$FIELD_NAME as FKCOLUMN_NAME,"
+			+ " CAST ((ISP.RDB$FIELD_POSITION + 1) as SMALLINT) as KEY_SEQ,"
+			+ " RC.RDB$UPDATE_RULE as UPDATE_RULE,"
+			+ " RC.RDB$DELETE_RULE as DELETE_RULE,"
+			+ " PK.RDB$CONSTRAINT_NAME as PK_NAME,"
+			+ " FK.RDB$CONSTRAINT_NAME as FK_NAME "
 			// +" ,null as DEFERRABILITY "
-			+ "FROM " + "  RDB$RELATION_CONSTRAINTS PK "
-			+ " ,RDB$RELATION_CONSTRAINTS FK " + " ,RDB$REF_CONSTRAINTS RC "
-			+ " ,RDB$INDEX_SEGMENTS ISP " + " ,RDB$INDEX_SEGMENTS ISF "
-			+ "WHERE " + "  PK.RDB$RELATION_NAME = ? " + "AND "
-			+ "  FK.RDB$CONSTRAINT_NAME = RC.RDB$CONSTRAINT_NAME " + "AND "
-			+ "  PK.RDB$CONSTRAINT_NAME = RC.RDB$CONST_NAME_UQ " + "AND "
-			+ "  ISP.RDB$INDEX_NAME = PK.RDB$INDEX_NAME " + "AND "
-			+ "  ISF.RDB$INDEX_NAME = FK.RDB$INDEX_NAME " + "AND "
-			+ "  ISP.RDB$FIELD_POSITION = ISF.RDB$FIELD_POSITION "
-			+ "ORDER BY " + "  7, 9 ";
+			+ "FROM "
+			+ " RDB$RELATION_CONSTRAINTS PK,"
+			+ " RDB$RELATION_CONSTRAINTS FK,"
+			+ " RDB$REF_CONSTRAINTS RC,"
+			+ " RDB$INDEX_SEGMENTS ISP,"
+			+ " RDB$INDEX_SEGMENTS ISF "
+			+ "WHERE"
+			+ "  PK.RDB$RELATION_NAME = ?"
+			+ " AND FK.RDB$CONSTRAINT_NAME = RC.RDB$CONSTRAINT_NAME"
+			+ " AND PK.RDB$CONSTRAINT_NAME = RC.RDB$CONST_NAME_UQ"
+			+ " AND ISP.RDB$INDEX_NAME = PK.RDB$INDEX_NAME"
+			+ " AND ISF.RDB$INDEX_NAME = FK.RDB$INDEX_NAME"
+			+ " AND ISP.RDB$FIELD_POSITION = ISF.RDB$FIELD_POSITION "
+			+ "ORDER BY 7, 9";
 
 	protected ResultSet createUniqueConstraintResultSet() throws SQLException {
 		try {
@@ -354,7 +357,7 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 					constraints.put(ucName, uc);
 					constraintColumns.put(ucName, new TreeMap());
 				}
-				((Map) constraintColumns.get(ucName)).put(new Integer(rs
+				((Map) constraintColumns.get(ucName)).put(Integer.valueOf(rs
 						.getShort(COLUMN_KEY_SEQ)), findColumn(rs.getString(
 						COLUMN_PKCOLUMN_NAME).trim()));
 			}
@@ -377,16 +380,19 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 	private static final String CHECK_CONSTRAINT_NAME = "CONSTRAINT_NAME";
 	private static final String CHECK_CONSTRAINT_SOURCE = "CONSTRAINT_SOURCE";
 
-	private static final String GET_CHECK_CONSTRAINTS = "" + "SELECT "
-			+ "  rc.rdb$constraint_name AS " + CHECK_CONSTRAINT_NAME + " "
-			+ ", tr.rdb$trigger_source AS " + CHECK_CONSTRAINT_SOURCE + " "
-			+ "FROM " + "  rdb$triggers tr " + "INNER JOIN "
-			+ "  rdb$check_constraints cc " + "ON "
-			+ "  cc.rdb$trigger_name = tr.rdb$trigger_name " + "INNER JOIN "
-			+ "  rdb$relation_constraints rc " + "ON "
-			+ "  cc.rdb$constraint_name = rc.rdb$constraint_name " + "WHERE "
-			+ "  rc.rdb$constraint_type = 'CHECK' " + "AND "
-			+ "  rc.rdb$relation_name = ?";
+	private static final String GET_CHECK_CONSTRAINTS = 
+	          "SELECT"
+			+ " rc.rdb$constraint_name AS " + CHECK_CONSTRAINT_NAME + ","
+			+ " tr.rdb$trigger_source AS " + CHECK_CONSTRAINT_SOURCE + " "
+			+ "FROM"
+			+ " rdb$triggers tr "
+			+ "INNER JOIN rdb$check_constraints cc" 
+			+ " ON cc.rdb$trigger_name = tr.rdb$trigger_name "
+			+ "INNER JOIN rdb$relation_constraints rc"
+			+ " ON cc.rdb$constraint_name = rc.rdb$constraint_name "
+			+ "WHERE"
+			+ " rc.rdb$constraint_type = 'CHECK'"
+			+ " AND rc.rdb$relation_name = ?";
 
 	protected ResultSet createCheckConstraintResultSet() throws SQLException {
 		try {
