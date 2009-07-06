@@ -50,51 +50,51 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 
 	private static final String LOAD_ALL_ROUTINES_SQL = 
 		      "SELECT"
-			+ "  cast('PROC' AS VARCHAR(4)) AS routine_type,"
-			+ "  p.rdb$procedure_name as procedure_name,"
-			+ "  p.rdb$description as routine_description,"
-			+ "  p.rdb$procedure_source as routine_source,"
-			+ "  cast(null as varchar(31)) as routine_module_name,"
-			+ "  cast(null as varchar(31)) as routine_entry_point,"
-			+ "  cast(null as integer) as routine_return_argument,"
-			+ "  cast(null as varchar(31)) as remarks " 
+			+ " cast('PROC' AS VARCHAR(4)) AS routine_type,"
+			+ " p.rdb$procedure_name as procedure_name,"
+			+ " p.rdb$description as routine_description,"
+			+ " p.rdb$procedure_source as routine_source,"
+			+ " cast(null as varchar(31)) as routine_module_name,"
+			+ " cast(null as varchar(31)) as routine_entry_point,"
+			+ " cast(null as integer) as routine_return_argument,"
+			+ " cast(null as varchar(31)) as remarks " 
 			+ "FROM rdb$procedures p "
 			+ "WHERE p.rdb$system_flag = ? "
 			+ "UNION SELECT"
-			+ "  cast('FUNC' AS VARCHAR(4)) AS routine_type,"
-			+ "  f.rdb$function_name as procedure_name,"
-			+ "  f.rdb$description as routine_description,"
-			+ "  cast(null as blob sub_type text) as routine_source,"
-			+ "  f.rdb$module_name as routine_module_name,"
-			+ "  f.rdb$entrypoint as routine_entry_point,"
-			+ "  f.rdb$return_argument as routine_return_argument,"
-			+ "  cast(null as varchar(31)) as remarks "
+			+ " cast('FUNC' AS VARCHAR(4)) AS routine_type,"
+			+ " f.rdb$function_name as procedure_name,"
+			+ " f.rdb$description as routine_description,"
+			+ " cast(null as blob sub_type text) as routine_source,"
+			+ " f.rdb$module_name as routine_module_name,"
+			+ " f.rdb$entrypoint as routine_entry_point,"
+			+ " f.rdb$return_argument as routine_return_argument,"
+			+ " cast(null as varchar(31)) as remarks "
 			+ "FROM rdb$functions f " 
 			+ "WHERE f.rdb$system_flag = ? ";
 
 	private static final String LOAD_FILTER_ROUTINES_SQL = 
-		    "SELECT"
-			+ "  cast('PROC' AS VARCHAR(4)) AS routine_type,"
-			+ "  p.rdb$procedure_name as procedure_name,"
-			+ "  p.rdb$procedure_source as routine_source,"
-			+ "  cast(null as varchar(31)) as routine_module_name,"
-			+ "  cast(null as varchar(31)) as routine_entry_point,"
-			+ "  cast(null as integer) as routine_return_argument,"
-			+ "  cast(null as varchar(31)) as remarks "
+		      "SELECT"
+			+ " cast('PROC' AS VARCHAR(4)) AS routine_type,"
+			+ " p.rdb$procedure_name as procedure_name,"
+			+ " p.rdb$procedure_source as routine_source,"
+			+ " cast(null as varchar(31)) as routine_module_name,"
+			+ " cast(null as varchar(31)) as routine_entry_point,"
+			+ " cast(null as integer) as routine_return_argument,"
+			+ " cast(null as varchar(31)) as remarks "
 			+ "FROM rdb$procedures p "
 			+ "WHERE p.rdb$system_flag = ?"
-			+ "  AND p.rdb$procedure_name LIKE ? " 
+			+ " AND p.rdb$procedure_name LIKE ? " 
 			+ "UNION SELECT"
-			+ "  cast('FUNC' AS VARCHAR(4)) AS routine_type,"
-			+ "  f.rdb$function_name as procedure_name,"
-			+ "  cast(null as blob sub_type text) as routine_source,"
-			+ "  f.rdb$module_name as routine_module_name,"
-			+ "  f.rdb$entrypoint as routine_entry_point,"
-			+ "  f.rdb$return_argument as routine_return_argument,"
-			+ "  cast(null as varchar(31)) as remarks "
+			+ " cast('FUNC' AS VARCHAR(4)) AS routine_type,"
+			+ " f.rdb$function_name as procedure_name,"
+			+ " cast(null as blob sub_type text) as routine_source,"
+			+ " f.rdb$module_name as routine_module_name,"
+			+ " f.rdb$entrypoint as routine_entry_point,"
+			+ " f.rdb$return_argument as routine_return_argument,"
+			+ " cast(null as varchar(31)) as remarks "
 			+ "FROM rdb$functions f " 
 			+ "WHERE f.rdb$system_flag = ?"
-			+ "  AND f.rdb$function_name LIKE ?";
+			+ " AND f.rdb$function_name LIKE ?";
 
 	protected ResultSet createResultSet() throws SQLException {
 		try {
@@ -154,7 +154,7 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 		}
 		routineName = routineName.trim();
 
-		IRoutineFactory routineFactory = (IRoutineFactory) (isProcedure(rs) ? getProcedureFactory()
+		IRoutineFactory routineFactory = (isProcedure(rs) ? getProcedureFactory()
 				: getUserDefinedFunctionFactory());
 
 		return routineFactory.createRoutine(rs);
