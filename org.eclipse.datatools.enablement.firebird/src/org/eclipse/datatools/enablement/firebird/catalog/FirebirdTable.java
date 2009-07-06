@@ -1,10 +1,10 @@
 package org.eclipse.datatools.enablement.firebird.catalog;
 
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Vector;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -23,24 +23,21 @@ import org.eclipse.emf.common.util.EList;
 /**
  * 
  * @author Roman Rokytskyy
+ * @author Mark Rotteveel
  * 
  */
 public class FirebirdTable extends JDBCTable {
 
 	private boolean showSystemObjects;
 
-	private Object checkConstraintsMutex = new Object();
+	private final Object checkConstraintsMutex = new Object();
 	private boolean checkConstraintsLoaded = false;
 
-	private Object primaryKeyMutex = new Object();
+	private final Object primaryKeyMutex = new Object();
 	private boolean primaryKeyLoaded = false;
 
-	private Object triggersMutex = new Object();
+	private final Object triggersMutex = new Object();
 	private boolean triggersLoaded = false;
-
-	public FirebirdTable() {
-		super();
-	}
 
 	protected JDBCTableColumnLoader createColumnLoader() {
 		// TODO Auto-generated method stub
@@ -48,7 +45,7 @@ public class FirebirdTable extends JDBCTable {
 	}
 
 	protected JDBCTableConstraintLoader createConstraintLoader() {
-		return new FirebirdConstraintLoader(this, showSystemObjects);
+		return new FirebirdConstraintLoader(this);
 	}
 
 	protected JDBCTableIndexLoader createIndexLoader() {
@@ -59,6 +56,12 @@ public class FirebirdTable extends JDBCTable {
 		synchronized (triggersMutex) {
 			triggersLoaded = false;
 		}
+		synchronized (primaryKeyMutex) {
+		    primaryKeyLoaded = false;
+		}
+		synchronized (checkConstraintsMutex) {
+            checkConstraintsLoaded = false;
+        }
 
 		super.refresh();
 	}
@@ -86,7 +89,7 @@ public class FirebirdTable extends JDBCTable {
 			FirebirdTableLoader.loadTriggers(connection, getSchema(), this,
 					triggerList);
 
-			this.triggersLoaded = true;
+			triggersLoaded = true;
 
 		} catch (Exception e) {
 			Activator.getDefault().getLog().log(
@@ -156,8 +159,7 @@ public class FirebirdTable extends JDBCTable {
 	}
 
 	private List internalGetCheckConstraints(Collection constraints) {
-		// TODO Is Vector required?
-		Vector tmpConstraints = new Vector();
+		List tmpConstraints = new ArrayList();
 		for (Iterator it = constraints.iterator(); it.hasNext();) {
 			Constraint currentConstraint = (Constraint) it.next();
 			if (currentConstraint instanceof FirebirdCheckConstraint) {
