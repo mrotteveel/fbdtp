@@ -6,7 +6,7 @@ public class FirebirdPasswordPersistenceHook extends
         JDBCPasswordPropertyPersistenceHook {
 
     public String getConnectionPropertiesPageID() {
-        return IFirebirdConnectionProfileConstants.CONNECTION_PROPERTY_PAGE_ID;
+        return IFBConstants.CONNECTION_PROPERTY_PAGE_ID;
     }
 
 }

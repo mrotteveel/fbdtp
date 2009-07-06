@@ -1,6 +1,6 @@
 package org.eclipse.datatools.sqltools.db.firebird.core;
 
-import org.eclipse.datatools.enablement.firebird.IFirebirdConnectionProfileConstants;
+import org.eclipse.datatools.enablement.firebird.IFBConstants;
 import org.eclipse.datatools.sqltools.core.DatabaseVendorDefinitionId;
 import org.eclipse.datatools.sqltools.core.SQLDevToolsConfiguration;
 import org.eclipse.datatools.sqltools.core.services.ConnectionService;
@@ -59,6 +59,6 @@ public class FirebirdConfiguration extends SQLDevToolsConfiguration {
     }
 
     public String[] getAssociatedConnectionProfileType() {
-        return new String[] { IFirebirdConnectionProfileConstants.FIREBIRD_CONNECTION_PROFILE };
+        return new String[] { IFBConstants.FIREBIRD_CONNECTION_PROFILE };
     }
 }

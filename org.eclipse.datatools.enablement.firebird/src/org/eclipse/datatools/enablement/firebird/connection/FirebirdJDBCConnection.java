@@ -10,7 +10,7 @@ import java.util.StringTokenizer;
 import org.eclipse.datatools.connectivity.DriverConnectionBase;
 import org.eclipse.datatools.connectivity.IConnectionProfile;
 import org.eclipse.datatools.connectivity.Version;
-import org.eclipse.datatools.enablement.firebird.IFirebirdConnectionProfileConstants;
+import org.eclipse.datatools.enablement.firebird.IFBConstants;
 
 /**
  * JDBCConnection implementation for the Firebird database.
@@ -38,15 +38,15 @@ public class FirebirdJDBCConnection extends DriverConnectionBase {
         Properties connectionProps = new Properties();
         
         String driverClass = getDriverDefinition().getProperty(
-                IFirebirdConnectionProfileConstants.DRIVER_CLASS_PROP_ID);
+                IFBConstants.DRIVER_CLASS_PROP_ID);
         String connectURL = props
-                .getProperty(IFirebirdConnectionProfileConstants.URL_PROP_ID);
+                .getProperty(IFBConstants.URL_PROP_ID);
         String uid = props
-                .getProperty(IFirebirdConnectionProfileConstants.USERNAME_PROP_ID);
+                .getProperty(IFBConstants.USERNAME_PROP_ID);
         String pwd = props
-                .getProperty(IFirebirdConnectionProfileConstants.PASSWORD_PROP_ID);
+                .getProperty(IFBConstants.PASSWORD_PROP_ID);
         String nameValuePairs = props
-                .getProperty(IFirebirdConnectionProfileConstants.CONNECTION_PROPERTIES_PROP_ID);
+                .getProperty(IFBConstants.CONNECTION_PROPERTIES_PROP_ID);
         String propDelim = ",";//$NON-NLS-1$
 
         if (uid != null) {
