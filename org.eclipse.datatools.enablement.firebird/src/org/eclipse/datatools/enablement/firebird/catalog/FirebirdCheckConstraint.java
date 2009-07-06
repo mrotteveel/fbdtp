@@ -7,21 +7,10 @@ import org.eclipse.datatools.modelbase.sql.expressions.impl.SearchConditionDefau
 /**
  * 
  * @author Roman Rokytskyy
+ * @author Mark Rotteveel
  * 
  */
 public class FirebirdCheckConstraint extends CheckConstraintImpl {
-
-	public FirebirdCheckConstraint() {
-		super();
-	}
-
-	public SearchCondition getSearchCondition() {
-		return super.getSearchCondition();
-	}
-
-	public void setSearchCondition(SearchCondition newSearchCondition) {
-		super.setSearchCondition(newSearchCondition);
-	}
 
 	public String getSQL() {
 		SearchCondition condition = getSearchCondition();
@@ -40,8 +29,6 @@ public class FirebirdCheckConstraint extends CheckConstraintImpl {
 			SearchConditionDefaultImpl {
 
 		public CheckConstraintCondition(String sql) {
-			super();
-
 			setSQL(sql);
 		}
 	}
