@@ -219,21 +219,34 @@ public class FirebirdConversionUtil {
 		String type;
 
 		type = getTypeAsString(sqltype, sqlsubtype, sqlscale);
-
-		if (sqlscale < 0 && sqltype != blob_type) {
-			type = type + "(" + sqlprecision + ", " + (-sqlscale) + ")";
-		} else if (sqltype == int64_type
-				&& (sqlsubtype == 1 || sqlsubtype == 2)) {
-			type = type + "(" + sqlprecision + ")";
-		} else if (sqltype == blob_type && sqlsubtype != 0) {
-			type = type + " SUB_TYPE " + sqlsubtype;
-		} else if (sqltype == char_type || sqltype == varchar_type
-				|| sqltype == cstring_type) {
-			type = type + "(" + charLength + ")";
-			if (charSetId != 0)
-				type += " CHARACTER SET " + getCharacterSet(charSetId);
+		
+		if (sqltype != blob_type && sqlscale <0) {
+		    return type + "(" + sqlprecision + ", " + (-sqlscale) + ")";
+		} else {
+    		switch(sqltype) {
+    		    case int64_type:
+    		        if (sqlsubtype == 1 || sqlsubtype == 2) {
+    		            type = type + "(" + sqlprecision + ")";
+    		        }
+    		        break;
+    		    case blob_type:
+    		        // TODO Check necessary? BLOB SUB_TYPE 0 is valid.
+    		        if (sqlsubtype != 0) {
+    		            type = type + " SUB_TYPE " + sqlsubtype;
+    		        }
+    		        break;
+    		    case char_type:
+    		    case varchar_type:
+    		    case cstring_type:
+    		        type = type + "(" + charLength + ")";
+    	            if (charSetId != 0) {
+    	                type += " CHARACTER SET " + getCharacterSet(charSetId);
+    	            }
+    	            break;
+    	        default:
+    	            break;
+    		}
 		}
-
 		return type;
 	}
 }
