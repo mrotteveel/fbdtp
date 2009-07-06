@@ -21,6 +21,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
  * This class is the Schema implementation, its purpose is to load tables.
  * 
  * @author Roman Rokytskyy
+ * @author Mark Rotteveel
  */
 public class FirebirdSchema extends JDBCSchema implements ICatalogObject {
 
@@ -30,7 +31,7 @@ public class FirebirdSchema extends JDBCSchema implements ICatalogObject {
 
     private boolean systemSchema;
 
-    private Object sequenceLoadMutex = new Object();
+    private final Object sequenceLoadMutex = new Object();
     private boolean sequencesLoaded = false;
 
     public FirebirdSchema(FirebirdDatabase catalogDatabase, boolean systemSchema) {
@@ -43,9 +44,10 @@ public class FirebirdSchema extends JDBCSchema implements ICatalogObject {
     }
 
     public synchronized void refresh() {
+        synchronized (sequenceLoadMutex) {
+            sequencesLoaded = false;
+        }
         super.refresh();
-
-        // RefreshManager.getInstance().referesh(this);
     }
 
     public boolean isSystemObject() {
