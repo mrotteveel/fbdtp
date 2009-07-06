@@ -13,16 +13,11 @@ import org.eclipse.datatools.connectivity.drivers.jdbc.JDBCConnectionFactory;
  */
 public class FirebirdJDBCConnectionFactory extends JDBCConnectionFactory {
 
-	public FirebirdJDBCConnectionFactory() {
-		super();
-	}
-	
 	/* (non-Javadoc)
 	 * @see org.eclipse.datatools.connectivity.db.generic.JDBCConnectionFactory#createConnection(org.eclipse.datatools.connectivity.IConnectionProfile)
 	 */
 	public IConnection createConnection(IConnectionProfile profile) {
-		FirebirdJDBCConnection connection = new FirebirdJDBCConnection(profile, getClass());
-		return connection;
+		return new FirebirdJDBCConnection(profile, getClass());
 	}
 
 }
