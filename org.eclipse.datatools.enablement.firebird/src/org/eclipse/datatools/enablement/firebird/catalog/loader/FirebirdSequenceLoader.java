@@ -63,18 +63,14 @@ public class FirebirdSequenceLoader extends JDBCBaseLoader {
 			Connection connection = getCatalogObject().getConnection();
 			Statement stmt = connection.createStatement();
 
-			String query;
-
-			String filterPattern = getJDBCFilterPattern();
-			if (filterPattern == null)
-				query = "SELECT rdb$generator_name AS " + SEQUENCE_NAME + " "
-						+ "FROM rdb$generators " + "WHERE rdb$system_flag = "
-						+ (systemSequences ? '1' : '0');
-			else
-				query = "SELECT rdb$generator_name AS " + SEQUENCE_NAME + " "
-						+ "FROM rdb$generators " + "WHERE rdb$system_flag =  "
-						+ (systemSequences ? '1' : '0')
-						+ "AND rdb$generator_name LIKE '" + filterPattern + "'";
+			final String filterPattern = getJDBCFilterPattern();
+			final char loadSystemSequences = systemSequences ? '1' : '0';
+			String query = 
+			      "SELECT rdb$generator_name AS " + SEQUENCE_NAME
+		        + " FROM rdb$generators "
+		        + "WHERE rdb$system_flag = " + loadSystemSequences;
+            if (filterPattern != null)
+				query += " AND rdb$generator_name LIKE '" + filterPattern + "'";
 
 			return stmt.executeQuery(query);
 		} catch (RuntimeException e) {
