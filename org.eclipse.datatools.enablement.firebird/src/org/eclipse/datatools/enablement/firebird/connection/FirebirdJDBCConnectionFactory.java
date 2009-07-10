@@ -17,7 +17,9 @@ public class FirebirdJDBCConnectionFactory extends JDBCConnectionFactory {
 	 * @see org.eclipse.datatools.connectivity.db.generic.JDBCConnectionFactory#createConnection(org.eclipse.datatools.connectivity.IConnectionProfile)
 	 */
 	public IConnection createConnection(IConnectionProfile profile) {
-		return new FirebirdJDBCConnection(profile, getClass());
+	    FirebirdJDBCConnection connection = new FirebirdJDBCConnection(profile, getClass());
+	    connection.open();
+		return connection;
 	}
 
 }
