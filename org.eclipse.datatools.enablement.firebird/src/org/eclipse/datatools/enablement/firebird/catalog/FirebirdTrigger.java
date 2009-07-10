@@ -1,11 +1,6 @@
 package org.eclipse.datatools.enablement.firebird.catalog;
 
-import java.sql.Connection;
-
-import org.eclipse.datatools.connectivity.sqm.core.rte.ICatalogObject;
-import org.eclipse.datatools.modelbase.sql.schema.Database;
 import org.eclipse.datatools.modelbase.sql.tables.ActionTimeType;
-import org.eclipse.datatools.modelbase.sql.tables.Trigger;
 import org.eclipse.datatools.modelbase.sql.tables.impl.TriggerImpl;
 
 /**
@@ -13,18 +8,10 @@ import org.eclipse.datatools.modelbase.sql.tables.impl.TriggerImpl;
  * @author Roman Rokytskyy
  *
  */
-public class FirebirdTrigger extends TriggerImpl implements Trigger {
+public class FirebirdTrigger extends TriggerImpl {
 
 	private boolean active;
 	private int position;
-
-	public Connection getConnection() {
-		Database db = getSchema().getDatabase();
-		if (db instanceof ICatalogObject) {
-			return ((ICatalogObject) db).getConnection();
-		}
-		return null;
-	}
 
     /* 
 	    BI -    1 -     00 00 00 1 
