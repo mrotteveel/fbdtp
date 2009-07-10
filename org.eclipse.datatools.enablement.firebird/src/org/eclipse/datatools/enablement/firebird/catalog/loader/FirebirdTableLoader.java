@@ -107,14 +107,6 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 		}
 	}
 
-	protected void closeResultSet(ResultSet rs) {
-		try {
-			rs.getStatement().close();
-		} catch (SQLException ex) {
-			ex.printStackTrace();
-		}
-	}
-
 	protected Table processRow(ResultSet rs) throws SQLException {
 		String tableName = rs.getString(COLUMN_TABLE_NAME);
 		if (tableName == null || isFiltered(tableName)) {
