@@ -8,7 +8,7 @@ import org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCView;
 import org.eclipse.datatools.enablement.firebird.Activator;
 import org.eclipse.datatools.enablement.firebird.catalog.loader.FirebirdTableLoader;
 import org.eclipse.datatools.modelbase.sql.expressions.QueryExpression;
-import org.eclipse.datatools.modelbase.sql.expressions.impl.QueryExpressionDefaultImpl;
+import org.eclipse.datatools.modelbase.sql.expressions.SQLExpressionsFactory;
 import org.eclipse.datatools.modelbase.sql.tables.SQLTablesPackage;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EStructuralFeature;
@@ -61,6 +61,7 @@ public class FirebirdView extends JDBCView {
     
     			triggersLoaded = true;
        		} catch (Exception e) {
+       		    //TODO Externalize string
     			Activator.getDefault().getLog().log(
     					new Status(IStatus.ERROR, Activator.PLUGIN_ID, 0,
     							"Could not load the triggers for view "
@@ -108,10 +109,13 @@ public class FirebirdView extends JDBCView {
     		try {
     			query = FirebirdTableLoader.loadViewQuery(connection, getSchema(),
     					this);
-    			setQueryExpression(new ViewQueryExpression(query));
+    			QueryExpression expression = SQLExpressionsFactory.eINSTANCE.createQueryExpressionDefault();
+    			expression.setSQL(query);
+    			setQueryExpression(expression);
     
     			queryLoaded = true;
     		} catch (Exception e) {
+    		    //TODO Externalize string
     			Activator.getDefault().getLog().log(
     					new Status(IStatus.ERROR, Activator.PLUGIN_ID, 0,
     							"Could not load the query for view "
@@ -120,12 +124,5 @@ public class FirebirdView extends JDBCView {
     
     		this.eSetDeliver(deliver);
 	    }
-	}
-
-	private static class ViewQueryExpression extends QueryExpressionDefaultImpl {
-
-		public ViewQueryExpression(String query) {
-			setSQL(query);
-		}
 	}
 }
