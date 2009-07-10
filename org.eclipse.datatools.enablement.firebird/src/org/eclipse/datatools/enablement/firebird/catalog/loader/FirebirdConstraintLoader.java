@@ -15,10 +15,13 @@ import java.util.TreeMap;
 import org.eclipse.datatools.connectivity.sqm.core.rte.ICatalogObject;
 import org.eclipse.datatools.connectivity.sqm.loader.IConnectionFilterProvider;
 import org.eclipse.datatools.connectivity.sqm.loader.JDBCTableConstraintLoader;
-import org.eclipse.datatools.enablement.firebird.catalog.FirebirdCheckConstraint;
+import org.eclipse.datatools.modelbase.sql.constraints.CheckConstraint;
 import org.eclipse.datatools.modelbase.sql.constraints.ForeignKey;
 import org.eclipse.datatools.modelbase.sql.constraints.PrimaryKey;
+import org.eclipse.datatools.modelbase.sql.constraints.SQLConstraintsFactory;
 import org.eclipse.datatools.modelbase.sql.constraints.UniqueConstraint;
+import org.eclipse.datatools.modelbase.sql.expressions.SQLExpressionsFactory;
+import org.eclipse.datatools.modelbase.sql.expressions.SearchCondition;
 import org.eclipse.datatools.modelbase.sql.schema.ReferentialActionType;
 import org.eclipse.datatools.modelbase.sql.tables.Table;
 
@@ -49,13 +52,6 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 
 	public FirebirdConstraintLoader(ICatalogObject catalogObject) {
 		super(catalogObject);
-	}
-
-	protected void closeResultSet(ResultSet rs) {
-		try {
-			rs.getStatement().close();
-		} catch (SQLException e) {
-		}
 	}
 
 	private static final String GET_IMPORTED_KEYS_START = 
@@ -441,17 +437,18 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 					ucName = ucName.trim();
 
 				if (!constraints.containsKey(ucName)) {
-					FirebirdCheckConstraint uc = (FirebirdCheckConstraint) getAndRemoveSQLObject(
+					CheckConstraint uc = (CheckConstraint) getAndRemoveSQLObject(
 							existingUCs, ucName);
 
 					if (uc == null) {
 						// create the next UC
-						uc = createCheckConstraint();
+						uc = SQLConstraintsFactory.eINSTANCE.createCheckConstraint();
 						uc.setName(ucName);
 					}
 
-					String sourceSql = rs.getString(CHECK_CONSTRAINT_SOURCE);
-					uc.setSQL(sourceSql);
+					SearchCondition searchCondition = SQLExpressionsFactory.eINSTANCE.createSearchConditionDefault();
+					searchCondition.setSQL(rs.getString(CHECK_CONSTRAINT_SOURCE));
+					uc.setSearchCondition(searchCondition);
 
 					containmentList.add(uc);
 					constraints.put(ucName, uc);
@@ -462,9 +459,5 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 				closeResultSet(rs);
 			}
 		}
-	}
-
-	protected FirebirdCheckConstraint createCheckConstraint() {
-		return new FirebirdCheckConstraint();
 	}
 }
