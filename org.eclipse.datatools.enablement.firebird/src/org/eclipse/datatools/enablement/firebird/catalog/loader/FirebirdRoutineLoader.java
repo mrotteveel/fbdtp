@@ -10,12 +10,10 @@ import org.eclipse.datatools.connectivity.sqm.core.rte.ICatalogObject;
 import org.eclipse.datatools.connectivity.sqm.loader.IConnectionFilterProvider;
 import org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineLoader;
 import org.eclipse.datatools.connectivity.sqm.loader.SchemaObjectFilterProvider;
-import org.eclipse.datatools.enablement.firebird.catalog.FirebirdProcedure;
-import org.eclipse.datatools.enablement.firebird.catalog.FirebirdSchema;
 import org.eclipse.datatools.enablement.firebird.catalog.FirebirdUDF;
 import org.eclipse.datatools.modelbase.sql.routines.Routine;
-import org.eclipse.datatools.modelbase.sql.routines.SQLRoutinesPackage;
-import org.eclipse.emf.ecore.EClass;
+import org.eclipse.datatools.modelbase.sql.routines.Source;
+import org.eclipse.datatools.modelbase.sql.routines.impl.SQLRoutinesFactoryImpl;
 
 /**
  * 
@@ -129,13 +127,6 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 		}
 	}
 
-	protected void closeResultSet(ResultSet rs) {
-		try {
-			rs.getStatement().close();
-		} catch (SQLException e) {
-		}
-	}
-
 	public static final String COLUMN_ROUTINE_TYPE = "routine_type";
 	public static final String COLUMN_ROUTINE_NAME = "procedure_name";
 	public static final String COLUMN_ROUTINE_DESCRIPTION = "routine_description";
@@ -159,51 +150,11 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 
 		return routineFactory.createRoutine(rs);
 	}
-	
-	/**
-	 * Base Factory for creating routines.
-	 *
-	 */
-	protected abstract class FBRoutineFactory implements IRoutineFactory {
-		/**
-		 * Creates and initializes a new Procedure object from the meta-data in
-		 * the result set.
-		 * 
-		 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineLoader.IRoutineFactory#createRoutine(java.sql.ResultSet)
-		 */
-		public Routine createRoutine(ResultSet rs) throws SQLException {
-			Routine routine = newRoutine();
-			initialize(routine, rs);
-			// routine.setSchema(schema);
-			return routine;
-		}
-		
-		/**
-		 * Internal factory method.
-		 * 
-		 * @return a new Routine object
-		 */
-		protected abstract Routine newRoutine();
-	}
 
 	/**
 	 * Factory implementation for stored procedures.
 	 */
-	public class FirebirdProcedureFactory extends FBRoutineFactory {
-
-		/**
-		 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineLoader.IRoutineFactory#getRoutineEClass()
-		 * 
-		 * @return SQLRoutinesPackage.eINSTANCE.getProcedure()
-		 */
-		public EClass getRoutineEClass() {
-			return SQLRoutinesPackage.eINSTANCE.getProcedure();
-		}
-
-
-		protected Routine newRoutine() {
-			return new FirebirdProcedure((FirebirdSchema)FirebirdRoutineLoader.this.getSchema());
-		}
+	public class FirebirdProcedureFactory extends ProcedureFactory {
 
 		/**
 		 * Initializes the new Routine object using the meta-data in the result
@@ -220,13 +171,13 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 		public void initialize(Routine routine, ResultSet rs)
 				throws SQLException {
 			
-			FirebirdProcedure fbProc = (FirebirdProcedure)routine;
+			Routine fbProc = routine;
 
 			fbProc.setName(rs.getString(COLUMN_ROUTINE_NAME).trim());
 			fbProc.setDescription(rs.getString(COLUMN_ROUTINE_DESCRIPTION));
-			fbProc.setSourceCode(rs.getString(COLUMN_ROUTINE_SOURCE));
-
-			// routine.getParameters();
+			Source source = SQLRoutinesFactoryImpl.eINSTANCE.createSource();
+			source.setBody(rs.getString(COLUMN_ROUTINE_SOURCE));
+			fbProc.setSource(source);
 		}
 	}
 
@@ -234,18 +185,10 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 	 * Factory implementation for User Defined Functions (UDF).
 	 *
 	 */
-	public class FirebirdUDFFactory extends FBRoutineFactory {
-		/**
-		 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineLoader.IRoutineFactory#getRoutineEClass()
-		 * 
-		 * @return SQLRoutinesPackage.eINSTANCE.getProcedure()
-		 */
-		public EClass getRoutineEClass() {
-			return SQLRoutinesPackage.eINSTANCE.getUserDefinedFunction();
-		}
+	public class FirebirdUDFFactory extends UserDefinedFunctionFactory {
 
 		protected Routine newRoutine() {
-			return new FirebirdUDF(FirebirdRoutineLoader.this.getSchema());
+			return new FirebirdUDF();
 		}
 
 		/**
@@ -270,8 +213,6 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 			fbUDF.setEntryPoint(rs.getString(COLUMN_ENTRY_POINT).trim());
 			fbUDF.setModuleName(rs.getString(COLUMN_MODULE_NAME).trim());
 			fbUDF.setReturnArgument(rs.getInt(COLUMN_RETURN_ARGUMENT));
-
-			// routine.getParameters();
 		}
 	}
 }
