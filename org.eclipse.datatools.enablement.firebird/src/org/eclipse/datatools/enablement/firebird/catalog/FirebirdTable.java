@@ -9,13 +9,13 @@ import java.util.List;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCTable;
-import org.eclipse.datatools.connectivity.sqm.loader.JDBCTableColumnLoader;
 import org.eclipse.datatools.connectivity.sqm.loader.JDBCTableConstraintLoader;
 import org.eclipse.datatools.connectivity.sqm.loader.JDBCTableIndexLoader;
 import org.eclipse.datatools.enablement.firebird.Activator;
 import org.eclipse.datatools.enablement.firebird.catalog.loader.FirebirdConstraintLoader;
 import org.eclipse.datatools.enablement.firebird.catalog.loader.FirebirdIndexLoader;
 import org.eclipse.datatools.enablement.firebird.catalog.loader.FirebirdTableLoader;
+import org.eclipse.datatools.modelbase.sql.constraints.CheckConstraint;
 import org.eclipse.datatools.modelbase.sql.constraints.Constraint;
 import org.eclipse.datatools.modelbase.sql.constraints.PrimaryKey;
 import org.eclipse.emf.common.util.EList;
@@ -38,11 +38,6 @@ public class FirebirdTable extends JDBCTable {
 
 	private final Object triggersMutex = new Object();
 	private boolean triggersLoaded = false;
-
-	protected JDBCTableColumnLoader createColumnLoader() {
-		// TODO Auto-generated method stub
-		return super.createColumnLoader();
-	}
 
 	protected JDBCTableConstraintLoader createConstraintLoader() {
 		return new FirebirdConstraintLoader(this);
@@ -162,7 +157,7 @@ public class FirebirdTable extends JDBCTable {
 		List tmpConstraints = new ArrayList();
 		for (Iterator it = constraints.iterator(); it.hasNext();) {
 			Constraint currentConstraint = (Constraint) it.next();
-			if (currentConstraint instanceof FirebirdCheckConstraint) {
+			if (currentConstraint instanceof CheckConstraint) {
 				tmpConstraints.add(currentConstraint);
 			}
 		}
