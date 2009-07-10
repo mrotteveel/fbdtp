@@ -5,7 +5,6 @@ import org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCUserDefinedFunct
 import org.eclipse.datatools.connectivity.sqm.loader.JDBCUDFColumnLoader;
 import org.eclipse.datatools.enablement.firebird.FirebirdConversionUtil;
 import org.eclipse.datatools.enablement.firebird.catalog.loader.FirebirdUDFColumnLoader;
-import org.eclipse.datatools.modelbase.sql.schema.Schema;
 
 /**
  * 
@@ -18,17 +17,6 @@ public class FirebirdUDF extends JDBCUserDefinedFunction {
 	private String entryPoint;
 	private String moduleName;
 	private int returnArgument;
-
-	// have to cache here, otherwise we get StackOverflowError
-	private FirebirdSchema schema;
-
-	public FirebirdUDF(Schema schema) {
-		this.schema = (FirebirdSchema) schema;
-	}
-
-	public Schema getSchema() {
-		return schema;
-	}
 
 	protected JDBCUDFColumnLoader createParameterLoader() {
 		return new FirebirdUDFColumnLoader(this);
