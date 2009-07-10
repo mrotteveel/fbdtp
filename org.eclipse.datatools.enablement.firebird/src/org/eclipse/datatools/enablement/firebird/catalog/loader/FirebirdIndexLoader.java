@@ -82,14 +82,6 @@ public class FirebirdIndexLoader extends JDBCTableIndexLoader {
 		}
 	}
 
-	protected void closeResultSet(ResultSet rs) {
-		try {
-			rs.getStatement().close();
-		} catch (SQLException e) {
-		}
-
-	}
-
 	public void loadIndexes(List containmentList, Collection existingIndexes)
 			throws SQLException {
 		ResultSet rs = null;
