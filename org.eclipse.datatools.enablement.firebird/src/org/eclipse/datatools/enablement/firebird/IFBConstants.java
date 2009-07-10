@@ -2,6 +2,7 @@ package org.eclipse.datatools.enablement.firebird;
 
 /**
  * @author brianf
+ * @author Mark Rotteveel
  *
  */
 public interface IFBConstants {
