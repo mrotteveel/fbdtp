@@ -6,7 +6,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.datatools.connectivity.sqm.core.rte.EngineeringOption;
 import org.eclipse.datatools.connectivity.sqm.core.rte.IEngineeringCallBack;
 import org.eclipse.datatools.connectivity.sqm.core.rte.fe.GenericDdlGenerator;
-import org.eclipse.datatools.enablement.firebird.catalog.FirebirdSequence;
 import org.eclipse.datatools.modelbase.sql.constraints.CheckConstraint;
 import org.eclipse.datatools.modelbase.sql.constraints.ForeignKey;
 import org.eclipse.datatools.modelbase.sql.constraints.Index;
@@ -14,6 +13,7 @@ import org.eclipse.datatools.modelbase.sql.constraints.UniqueConstraint;
 import org.eclipse.datatools.modelbase.sql.routines.Procedure;
 import org.eclipse.datatools.modelbase.sql.routines.UserDefinedFunction;
 import org.eclipse.datatools.modelbase.sql.schema.SQLObject;
+import org.eclipse.datatools.modelbase.sql.schema.Sequence;
 import org.eclipse.datatools.modelbase.sql.tables.BaseTable;
 import org.eclipse.datatools.modelbase.sql.tables.PersistentTable;
 import org.eclipse.datatools.modelbase.sql.tables.Trigger;
@@ -113,11 +113,11 @@ public class FirebirdDdlGenerator extends GenericDdlGenerator {
 								quoteIdentifiers, qualifyNames);
 				if (statement != null)
 					script.addCreateFunctionStatement(statement);
-			} else if (o instanceof FirebirdSequence) {
+			} else if (o instanceof Sequence) {
 				if (!this.generateSequences(options))
 					continue;
-				String statement = builder.createFirebirdSequence(
-						(FirebirdSequence) o, quoteIdentifiers, qualifyNames);
+				String statement = builder.createSequence(
+						(Sequence) o, quoteIdentifiers, qualifyNames);
 				if (statement != null)
 					script.addCreateSequence(statement);
 			}
@@ -204,11 +204,11 @@ public class FirebirdDdlGenerator extends GenericDdlGenerator {
 								quoteIdentifiers, qualifyNames);
 				if (statement != null)
 					script.addDropFunctionStatement(statement);
-			} else if (o instanceof FirebirdSequence) {
+			} else if (o instanceof Sequence) {
 				if (!this.generateSequences(options))
 					continue;
-				String statement = builder.dropFirebirdSequence(
-						(FirebirdSequence) o, quoteIdentifiers, qualifyNames);
+				String statement = builder.dropSequence(
+						(Sequence) o, quoteIdentifiers, qualifyNames);
 				if (statement != null)
 					script.addDropSequence(statement);
 			}
