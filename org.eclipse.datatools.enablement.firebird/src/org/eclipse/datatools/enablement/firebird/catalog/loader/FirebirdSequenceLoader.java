@@ -11,8 +11,7 @@ import org.eclipse.datatools.connectivity.sqm.core.connection.ConnectionFilter;
 import org.eclipse.datatools.connectivity.sqm.core.rte.ICatalogObject;
 import org.eclipse.datatools.connectivity.sqm.loader.JDBCBaseLoader;
 import org.eclipse.datatools.connectivity.sqm.loader.SchemaObjectFilterProvider;
-import org.eclipse.datatools.enablement.firebird.catalog.FirebirdSequence;
-import org.eclipse.datatools.modelbase.sql.schema.Schema;
+import org.eclipse.datatools.modelbase.sql.schema.SQLSchemaFactory;
 import org.eclipse.datatools.modelbase.sql.schema.Sequence;
 
 /**
@@ -32,16 +31,6 @@ public class FirebirdSequenceLoader extends JDBCBaseLoader {
 				ConnectionFilter.SEQUENCE_FILTER));
 
 		this.systemSequences = systemSequences;
-	}
-
-	/**
-	 * Utility method.
-	 * 
-	 * @return returns the catalog object being operated upon as a Schema (i.e.
-	 *         (Schema) getCatalogObject()).
-	 */
-	protected Schema getSchema() {
-		return (Schema) getCatalogObject();
 	}
 
 	/**
@@ -147,9 +136,9 @@ public class FirebirdSequenceLoader extends JDBCBaseLoader {
 	 */
 	protected void closeResultSet(ResultSet rs) {
 		try {
-			rs.getStatement().close();
+		    rs.close();
 		} catch (SQLException e) {
-		}
+        }
 	}
 
 	/**
@@ -166,8 +155,7 @@ public class FirebirdSequenceLoader extends JDBCBaseLoader {
 	 */
 	protected Sequence processRow(ResultSet rs) throws SQLException {
 		String name = rs.getString(SEQUENCE_NAME).trim();
-
-		FirebirdSequence sequence = new FirebirdSequence();
+		Sequence sequence = SQLSchemaFactory.eINSTANCE.createSequence();
 		sequence.setName(name);
 
 		return sequence;
