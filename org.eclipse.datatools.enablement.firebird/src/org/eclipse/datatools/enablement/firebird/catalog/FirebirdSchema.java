@@ -1,6 +1,5 @@
 package org.eclipse.datatools.enablement.firebird.catalog;
 
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,8 +10,6 @@ import org.eclipse.datatools.connectivity.sqm.loader.JDBCTableLoader;
 import org.eclipse.datatools.enablement.firebird.catalog.loader.FirebirdRoutineLoader;
 import org.eclipse.datatools.enablement.firebird.catalog.loader.FirebirdSequenceLoader;
 import org.eclipse.datatools.enablement.firebird.catalog.loader.FirebirdTableLoader;
-import org.eclipse.datatools.modelbase.sql.schema.Catalog;
-import org.eclipse.datatools.modelbase.sql.schema.Database;
 import org.eclipse.datatools.modelbase.sql.schema.SQLSchemaPackage;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EStructuralFeature;
@@ -27,20 +24,14 @@ public class FirebirdSchema extends JDBCSchema implements ICatalogObject {
 
     private static final long serialVersionUID = 1L;
 
-    private FirebirdDatabase catalogDatabase;
-
     private boolean systemSchema;
 
     private final Object sequenceLoadMutex = new Object();
     private boolean sequencesLoaded = false;
 
-    public FirebirdSchema(FirebirdDatabase catalogDatabase, boolean systemSchema) {
-        this.catalogDatabase = catalogDatabase;
+    public FirebirdSchema(String name, boolean systemSchema) {
         this.systemSchema = systemSchema;
-    }
-
-    public Catalog getCatalog() {
-        return catalogDatabase;
+        this.setName(name);
     }
 
     public synchronized void refresh() {
@@ -48,19 +39,6 @@ public class FirebirdSchema extends JDBCSchema implements ICatalogObject {
             sequencesLoaded = false;
         }
         super.refresh();
-    }
-
-    public boolean isSystemObject() {
-        return false;
-    }
-    
-    public Connection getConnection() {
-        Database database = getDatabase();
-        return ((FirebirdDatabase) database).getConnection();
-    }
-
-    public Database getCatalogDatabase() {
-        return getDatabase();
     }
 
     public boolean eIsSet(EStructuralFeature eFeature) {

@@ -100,19 +100,20 @@
       </connectionProfile>
    </extension>
    <extension
-         point="org.eclipse.datatools.connectivity.sqm.core.catalog">
-      <catalog
-            product="Firebird"
-            provider="org.eclipse.datatools.enablement.firebird.catalog.FirebirdCatalogProvider"
-            version="2.1">
-      </catalog>
-   </extension>
-   <extension
          point="org.eclipse.datatools.connectivity.sqm.core.ddlGeneration">
       <generator
             class="org.eclipse.datatools.enablement.firebird.ddl.FirebirdDdlGenerator"
             product="Firebird"
             version="2.1">
       </generator>
+   </extension>
+   <extension
+         point="org.eclipse.datatools.connectivity.sqm.core.catalog">
+      <overrideLoader
+            eclass="org.eclipse.datatools.modelbase.sql.schema.Schema"
+            product="Firebird"
+            provider="org.eclipse.datatools.enablement.firebird.catalog.loader.FirebirdSchemaLoader"
+            version="2.1">
+      </overrideLoader>
    </extension>
 </plugin>
