@@ -2,15 +2,11 @@ package org.eclipse.datatools.enablement.firebird.connection;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.Driver;
 import java.sql.SQLException;
-import java.util.Properties;
-import java.util.StringTokenizer;
 
-import org.eclipse.datatools.connectivity.DriverConnectionBase;
 import org.eclipse.datatools.connectivity.IConnectionProfile;
 import org.eclipse.datatools.connectivity.Version;
-import org.eclipse.datatools.enablement.firebird.IFBConstants;
+import org.eclipse.datatools.connectivity.drivers.jdbc.JDBCConnection;
 
 /**
  * JDBCConnection implementation for the Firebird database.
@@ -19,7 +15,7 @@ import org.eclipse.datatools.enablement.firebird.IFBConstants;
  * @author Mark Rotteveel
  *
  */
-public class FirebirdJDBCConnection extends DriverConnectionBase {
+public class FirebirdJDBCConnection extends JDBCConnection {
 
     public static final String TECHNOLOGY_ROOT_KEY = "firebird_jdbc";
     public static final String TECHNOLOGY_NAME = "Firebird JDBC Connection";
@@ -30,50 +26,6 @@ public class FirebirdJDBCConnection extends DriverConnectionBase {
 
     public FirebirdJDBCConnection(IConnectionProfile profile, Class factoryClass) {
         super(profile, factoryClass);
-        open();
-    }
-
-    protected Object createConnection(ClassLoader cl) throws Throwable {
-        Properties props = getConnectionProfile().getBaseProperties();
-        Properties connectionProps = new Properties();
-        
-        String driverClass = getDriverDefinition().getProperty(IFBConstants.DRIVER_CLASS_PROP_ID);
-        String connectURL = props.getProperty(IFBConstants.URL_PROP_ID);
-        String uid = props.getProperty(IFBConstants.USERNAME_PROP_ID);
-        String pwd = props.getProperty(IFBConstants.PASSWORD_PROP_ID);
-        String nameValuePairs = props.getProperty(IFBConstants.CONNECTION_PROPERTIES_PROP_ID);
-        String propDelim = ",";//$NON-NLS-1$
-
-        if (uid != null) {
-            connectionProps.setProperty("user", uid); //$NON-NLS-1$
-        }
-        if (pwd != null) {
-            connectionProps.setProperty("password", pwd); //$NON-NLS-1$
-        }
-
-        if (nameValuePairs != null && nameValuePairs.length() > 0) {
-            String[] pairs = parseString(nameValuePairs, propDelim); //$NON-NLS-1$
-            for (int i = 0; i < pairs.length; i++) {
-                String[] namevalue = parseString(pairs[i], "="); //$NON-NLS-1$
-                connectionProps.setProperty(namevalue[0], namevalue[1]);
-            }
-        }
-
-        Driver jdbcDriver = (Driver) cl.loadClass(driverClass).newInstance();
-        return jdbcDriver.connect(connectURL, connectionProps);
-    }
-
-    public void close() {
-        Connection connection = (Connection) getRawConnection();
-        if (connection != null) {
-            try {
-                connection.close();
-            }
-            catch (SQLException e) {
-                // RJC Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
     }
 
     public String getProviderName() {
@@ -107,19 +59,4 @@ public class FirebirdJDBCConnection extends DriverConnectionBase {
 			// Defaults
 		}
     }
-
-    /**
-     * @param str_list
-     * @param token
-     * @return
-     */
-    protected String[] parseString(String str_list, String token) {
-        StringTokenizer tk = new StringTokenizer(str_list, token);
-        String[] pieces = new String[tk.countTokens()];
-        int index = 0;
-        while (tk.hasMoreTokens())
-            pieces[index++] = tk.nextToken();
-        return pieces;
-    }
-
 }
