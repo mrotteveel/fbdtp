@@ -8,10 +8,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.datatools.connectivity.sqm.core.rte.ICatalogObject;
 import org.eclipse.datatools.connectivity.sqm.core.rte.fe.GenericDdlBuilder;
 import org.eclipse.datatools.enablement.firebird.FirebirdConversionUtil;
-import org.eclipse.datatools.enablement.firebird.catalog.FirebirdProcedure;
-import org.eclipse.datatools.enablement.firebird.catalog.FirebirdSequence;
+import org.eclipse.datatools.enablement.firebird.catalog.FirebirdSchema;
 import org.eclipse.datatools.enablement.firebird.catalog.FirebirdTrigger;
 import org.eclipse.datatools.enablement.firebird.catalog.FirebirdUDF;
 import org.eclipse.datatools.modelbase.sql.constraints.Index;
@@ -146,7 +146,7 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 
 		//Avoid hardcoded reference to Jaybird driver
 		try {
-			DatabaseMetaData dbmd = trigger.getConnection().getMetaData();
+			DatabaseMetaData dbmd = ((ICatalogObject)trigger.getSchema()).getConnection().getMetaData();
 			Class metaClass = dbmd.getClass();
 			Method getTriggerSourceCode = metaClass.getMethod("getTriggerSourceCode", new Class[] {String.class});
 			Object result = getTriggerSourceCode.invoke(dbmd, new Object[] {trigger.getName()});
@@ -168,14 +168,14 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 	}
 	
 	public String createProcedure(Procedure procedure, boolean quoteIdentifiers, boolean qualifyNames) {
-		if (procedure instanceof FirebirdProcedure) {
-			return createFirebirdProcedure((FirebirdProcedure)procedure, quoteIdentifiers, qualifyNames);
+	    if (procedure.getSchema() instanceof FirebirdSchema) {
+			return createFirebirdProcedure(procedure, quoteIdentifiers, qualifyNames);
 		} else {
 			return super.createProcedure(procedure, quoteIdentifiers, qualifyNames);
 		}
 	}
 
-	public String createFirebirdProcedure(FirebirdProcedure procedure,
+	public String createFirebirdProcedure(Procedure procedure,
 			boolean quoteIdentifiers, boolean qualifyNames) {
 		StringBuffer statement = new StringBuffer();
 
@@ -362,7 +362,7 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 		return result.toString();
 	}
 	
-	public String dropFirebirdSequence(FirebirdSequence o, boolean quoteIdentifiers,
+	public String dropSequence(Sequence o, boolean quoteIdentifiers,
 			boolean qualifyNames) {
 		StringBuffer result = new StringBuffer();
 
@@ -372,7 +372,7 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 		return result.toString();
 	}
 
-	public String createFirebirdSequence(FirebirdSequence o, boolean quoteIdentifiers,
+	public String createSequence(Sequence o, boolean quoteIdentifiers,
 			boolean qualifyNames) {
 		StringBuffer result = new StringBuffer();
 
