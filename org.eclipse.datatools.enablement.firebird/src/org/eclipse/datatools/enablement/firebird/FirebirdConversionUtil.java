@@ -247,7 +247,6 @@ public class FirebirdConversionUtil {
     		        }
     		        break;
     		    case blob_type:
-    		        // TODO Check necessary? BLOB SUB_TYPE 0 is valid.
     		        if (sqlsubtype != 0) {
     		            type = type + " SUB_TYPE " + sqlsubtype;
     		        }
