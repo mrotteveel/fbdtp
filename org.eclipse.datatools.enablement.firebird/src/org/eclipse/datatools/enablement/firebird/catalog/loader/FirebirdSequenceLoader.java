@@ -12,6 +12,7 @@
  *
  * Contributors:
  *     Roman Rokytskyy  - Initial implementation
+ *     Mark Rotteveel   - Code cleanup, further development
  */ 
 
 package org.eclipse.datatools.enablement.firebird.catalog.loader;
@@ -27,37 +28,33 @@ import org.eclipse.datatools.connectivity.sqm.core.connection.ConnectionFilter;
 import org.eclipse.datatools.connectivity.sqm.core.rte.ICatalogObject;
 import org.eclipse.datatools.connectivity.sqm.loader.JDBCBaseLoader;
 import org.eclipse.datatools.connectivity.sqm.loader.SchemaObjectFilterProvider;
+import org.eclipse.datatools.enablement.firebird.Activator;
 import org.eclipse.datatools.modelbase.sql.schema.SQLSchemaFactory;
 import org.eclipse.datatools.modelbase.sql.schema.Sequence;
 
 /**
+ * Sequence loader for the firebird database.
  * 
  * @author Roman Rokytskyy
+ * @author Mark Rotteveel
  * 
  */
 public class FirebirdSequenceLoader extends JDBCBaseLoader {
 
 	private static final String SEQUENCE_NAME = "SEQUENCE_NAME";
 
-	private boolean systemSequences;
+	private final boolean systemSequences;
 
-	public FirebirdSequenceLoader(ICatalogObject catalogObject,
-			boolean systemSequences) {
-		super(catalogObject, new SchemaObjectFilterProvider(
-				ConnectionFilter.SEQUENCE_FILTER));
+	public FirebirdSequenceLoader(ICatalogObject catalogObject, boolean systemSequences) {
+		super(catalogObject, new SchemaObjectFilterProvider(ConnectionFilter.SEQUENCE_FILTER));
 
 		this.systemSequences = systemSequences;
 	}
 
 	/**
-	 * Creates a result set to be used by the loading logic. The default version
-	 * uses of the JDBC DatabaseMetaData.getUDTs() to create the result set.
-	 * This method may be overridden to use a vendor specific query. However,
-	 * the default logic requires the columns named by the "COLUMN_*" fields.
-	 * Keep this in mind if you plan to reuse the default logic (e.g.
-	 * StructTypeFactory.initialize())
+	 * Creates a result set to be used by the loading logic. 
 	 * 
-	 * @return a result containing the information used to initialize Routine
+	 * @return a result containing the information used to initialize Sequence
 	 *         objects
 	 * 
 	 * @throws SQLException
@@ -67,27 +64,24 @@ public class FirebirdSequenceLoader extends JDBCBaseLoader {
 		try {
 			Connection connection = getCatalogObject().getConnection();
 			Statement stmt = connection.createStatement();
-
-			final String filterPattern = getJDBCFilterPattern();
-			final char loadSystemSequences = systemSequences ? '1' : '0';
-			String query = 
-			      "SELECT rdb$generator_name AS " + SEQUENCE_NAME
-		        + " FROM rdb$generators "
-		        + "WHERE rdb$system_flag = " + loadSystemSequences;
-            if (filterPattern != null)
-				query += " AND rdb$generator_name LIKE '" + filterPattern + "'";
-
-			return stmt.executeQuery(query);
+			char loadSystemSequences = systemSequences ? '1' : '0';
+			StringBuffer querySb = new StringBuffer();
+			querySb
+			    .append("SELECT rdb$generator_name AS ")
+			    .append(SEQUENCE_NAME)
+			    .append(" FROM rdb$generators WHERE rdb$system_flag = ")
+			    .append(loadSystemSequences);
+	        String filterPattern = getJDBCFilterPattern();
+            if (filterPattern != null) {
+                querySb
+                    .append(" AND rdb$generator_name LIKE '")
+                    .append(filterPattern)
+                    .append('\'');
+            }
+			return stmt.executeQuery(querySb.toString());
 		} catch (RuntimeException e) {
-			// FIXME correct errormessage
-			SQLException error = new SQLException(/*
-												 * MessageFormat.format(
-												 * Messages.
-												 * Error_Unsupported_DatabaseMetaData_Method
-												 * , new Object[] {
-												 * "java.sql.DatabaseMetaData.getUDTs()"
-												 * })
-												 */); //$NON-NLS-1$
+			SQLException error = new SQLException(
+			        Activator.getResourceString("error.sequence.loading")); //$NON-NLS-1$
 			error.initCause(e);
 			throw error;
 		}
@@ -158,14 +152,11 @@ public class FirebirdSequenceLoader extends JDBCBaseLoader {
 	}
 
 	/**
-	 * Processes a single row in the result set. By default, this method
-	 * determines whether or not the UDT is a struct, distinct or Java type and
-	 * invokes createUDT() on the appropriate factory., returning the newly
-	 * created, initialized UserDefinedType object.
+	 * Processes a single row in the result set. Returns a Sequence object.
 	 * 
 	 * @param rs
 	 *            the result set
-	 * @return a new UserDefinedType object
+	 * @return a new Sequence object
 	 * @throws SQLException
 	 *             if anything goes wrong
 	 */

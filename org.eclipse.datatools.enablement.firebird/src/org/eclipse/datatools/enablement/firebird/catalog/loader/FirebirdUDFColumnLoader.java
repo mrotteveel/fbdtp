@@ -28,6 +28,7 @@ import java.util.List;
 import org.eclipse.datatools.connectivity.sqm.core.rte.ICatalogObject;
 import org.eclipse.datatools.connectivity.sqm.loader.IConnectionFilterProvider;
 import org.eclipse.datatools.connectivity.sqm.loader.JDBCUDFColumnLoader;
+import org.eclipse.datatools.enablement.firebird.Activator;
 import org.eclipse.datatools.enablement.firebird.FirebirdConversionUtil;
 import org.eclipse.datatools.enablement.firebird.catalog.FirebirdUDF;
 import org.eclipse.datatools.modelbase.dbdefinition.PredefinedDataTypeDefinition;
@@ -44,10 +45,21 @@ import org.eclipse.emf.ecore.EStructuralFeature;
  */
 public class FirebirdUDFColumnLoader extends JDBCUDFColumnLoader {
 
+    /**
+     * @param catalogObject the Procedure object upon which this loader
+     *        operates.
+     * @param connectionFilterProvider the filter provider used for filtering
+     *        the "column" objects being loaded
+     */
     public FirebirdUDFColumnLoader(ICatalogObject catalogObject, IConnectionFilterProvider connectionFilterProvider) {
         super(catalogObject, connectionFilterProvider);
     }
 
+    /**
+     * Constructs the loader using no filtering.
+     * 
+     * @param catalogObject the Database object upon which this loader operates.
+     */
     public FirebirdUDFColumnLoader(ICatalogObject catalogObject) {
         super(catalogObject);
     }
@@ -83,8 +95,7 @@ public class FirebirdUDFColumnLoader extends JDBCUDFColumnLoader {
         udfParameter.setCharSetId(charSetId);
         udfParameter.setCharLength(charLength);
         
-        // db definition types are always upper case: make sure the typeName is
-        // upper too
+        // db definition types are always upper case: make sure the typeName is upper too
         String typeName = FirebirdConversionUtil.getTypeAsString(fieldType, fieldSubType, fieldScale);
         int typeCode = FirebirdConversionUtil.getJdbcType(fieldType);
 
@@ -116,7 +127,7 @@ public class FirebirdUDFColumnLoader extends JDBCUDFColumnLoader {
         
         if (typeCode == Types.OTHER || typeCode == Types.REF)
             return;
-            
+        // TODO statement below conflicts with statement 5 lines above   
         if (pdtd == null) {
             // Use the first element by default
             pdtd = (PredefinedDataTypeDefinition) pdtds.get(0);
@@ -156,49 +167,70 @@ public class FirebirdUDFColumnLoader extends JDBCUDFColumnLoader {
         + "FROM "
         + " rdb$function_arguments fa "
         + "WHERE "
-        + " fa.rdb$function_name = ?"
-        ;
+        + " fa.rdb$function_name = ?";
     
+    /**
+     * Creates a result set containing the procedure parameters which will be
+     * used by the loading logic.
+     * 
+     * @return a result containing the information used to initialize Parameter
+     *         objects
+     * 
+     * @throws SQLException if anything goes wrong
+     */
     protected ResultSet createParametersResultSet() throws SQLException {
         try {
             Connection connection = getCatalogObject().getConnection();
             
-            FirebirdUDF udf = (FirebirdUDF)getRoutine();
-            
             PreparedStatement stmt = connection.prepareStatement(UDF_PARAMETERS);
-            stmt.setString(1, udf.getName());
+            stmt.setString(1, getRoutine().getName());
             
             return stmt.executeQuery();
         }
         catch (RuntimeException e) {
-        	//FIXME Fix message
-            SQLException error = new SQLException(/*MessageFormat.format(
-                Messages.Error_Unsupported_DatabaseMetaData_Method,
-                new Object[] { "java.sql.DatabaseMetaData.getProcedures()"})*/); //$NON-NLS-1$
-            
+            SQLException error = new SQLException(
+                    Activator.getResourceString("error.udf.parameter.loading")); //$NON-NLS-1$
             error.initCause(e);
             throw error;
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineColumnLoader#isParameter(java.sql.ResultSet)
+     */
     protected boolean isParameter(ResultSet rs) throws SQLException {
         return true;
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineColumnLoader#createParameter()
+     */
     protected Parameter createParameter() {
         return new FirebirdUDF.Parameter();
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineColumnLoader#closeParametersResultSet(java.sql.ResultSet)
+     */
     protected void closeParametersResultSet(ResultSet rs) {
         try {
+            // TODO: Why close statement, not resultset?
             rs.getStatement().close();
         }
         catch (SQLException e) {
         }
     }
     
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineColumnLoader#closeRoutineResultTableResultSet(java.sql.ResultSet)
+     */
     protected void closeRoutineResultTableResultSet(ResultSet rs) {
         try {
+            // TODO: Why close statement, not resultset?
             rs.getStatement().close();
         }
         catch (SQLException e) {

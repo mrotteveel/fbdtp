@@ -27,12 +27,14 @@ import org.eclipse.datatools.connectivity.sqm.core.rte.ICatalogObject;
 import org.eclipse.datatools.connectivity.sqm.loader.IConnectionFilterProvider;
 import org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineLoader;
 import org.eclipse.datatools.connectivity.sqm.loader.SchemaObjectFilterProvider;
+import org.eclipse.datatools.enablement.firebird.Activator;
 import org.eclipse.datatools.enablement.firebird.catalog.FirebirdUDF;
 import org.eclipse.datatools.modelbase.sql.routines.Routine;
 import org.eclipse.datatools.modelbase.sql.routines.Source;
 import org.eclipse.datatools.modelbase.sql.routines.impl.SQLRoutinesFactoryImpl;
 
 /**
+ * Routine loader for the Firebird database.
  * 
  * @author Roman Rokytskyy
  * @author Mark Rotteveel
@@ -44,8 +46,16 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 	public static final String COLUMN_MODULE_NAME = "routine_module_name";
 	public static final String COLUMN_RETURN_ARGUMENT = "routine_return_argument";
 
-	private boolean systemSchema;
+	private final boolean systemSchema;
 
+	/**
+	 * Constructs the routine loader.
+	 * 
+	 * @param catalogObject the Schema object upon which this loader operates.
+	 * @param connectionFilterProviderthe filter provider used for filtering
+     *        the "routine" objects being loaded
+	 * @param systemSchema true: load system objects, false: load user objects
+	 */
 	public FirebirdRoutineLoader(ICatalogObject catalogObject,
 			IConnectionFilterProvider connectionFilterProvider,
 			boolean systemSchema) {
@@ -57,6 +67,12 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 		this.systemSchema = systemSchema;
 	}
 
+	/**
+     * Constructs the routine loader without filter.
+     * 
+     * @param catalogObject the Schema object upon which this loader operates.
+     * @param systemSchema true: load system objects, false: load user objects
+     */
 	public FirebirdRoutineLoader(ICatalogObject catalogObject,
 			boolean systemSchema) {
 		this(catalogObject, new SchemaObjectFilterProvider(
@@ -87,9 +103,11 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 			+ "FROM rdb$functions f " 
 			+ "WHERE f.rdb$system_flag = ? ";
 
+	private static final String PROCEDURE_ID = "PROC";
+	private static final String UDF_ID = "FUNC";
 	private static final String LOAD_FILTER_ROUTINES_SQL = 
 		      "SELECT"
-			+ " cast('PROC' AS VARCHAR(4)) AS routine_type,"
+			+ " cast('" + PROCEDURE_ID + "' AS VARCHAR(4)) AS routine_type,"
 			+ " p.rdb$procedure_name as procedure_name,"
 			+ " p.rdb$procedure_source as routine_source,"
 			+ " cast(null as varchar(31)) as routine_module_name,"
@@ -100,7 +118,7 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 			+ "WHERE p.rdb$system_flag = ?"
 			+ " AND p.rdb$procedure_name LIKE ? " 
 			+ "UNION SELECT"
-			+ " cast('FUNC' AS VARCHAR(4)) AS routine_type,"
+			+ " cast('" + UDF_ID + "' AS VARCHAR(4)) AS routine_type,"
 			+ " f.rdb$function_name as procedure_name,"
 			+ " cast(null as blob sub_type text) as routine_source,"
 			+ " f.rdb$module_name as routine_module_name,"
@@ -111,12 +129,19 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 			+ "WHERE f.rdb$system_flag = ?"
 			+ " AND f.rdb$function_name LIKE ?";
 
+	/**
+     * Creates a result set to be used by the loading logic. 
+     * 
+     * @return a result containing the information used to initialize Routine
+     *         objects
+     * 
+     * @throws SQLException if an error occurs
+     */
 	protected ResultSet createResultSet() throws SQLException {
 		try {
-			String filterPattern = getJDBCFilterPattern();
-
 			Connection connection = getCatalogObject().getConnection();
 
+			String filterPattern = getJDBCFilterPattern();
 			PreparedStatement stmt = connection
 					.prepareStatement(filterPattern == null ? LOAD_ALL_ROUTINES_SQL
 							: LOAD_FILTER_ROUTINES_SQL);
@@ -132,13 +157,8 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 
 			return stmt.executeQuery();
 		} catch (RuntimeException e) {
-			//FIXME Fix message format
-			SQLException error = new SQLException(/*
-					MessageFormat
-							.format(
-									Messages.Error_Unsupported_DatabaseMetaData_Method,
-									new Object[] { "java.sql.DatabaseMetaData.getProcedures()" })*/); //$NON-NLS-1$
-
+			SQLException error = new SQLException(
+			        Activator.getResourceString("error.routine.loading")); //$NON-NLS-1$
 			error.initCause(e);
 			throw error;
 		}
@@ -151,8 +171,12 @@ public class FirebirdRoutineLoader extends JDBCRoutineLoader {
 	public static final String COLUMN_ROUTINE_MODULE_NAME = "routine_module_name";
 	public static final String COLUMN_ROUTINE_ENTRY_POINT = "routine_entry_point";
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineLoader#isProcedure(java.sql.ResultSet)
+	 */
 	protected boolean isProcedure(ResultSet rs) throws SQLException {
-		return "PROC".equals(rs.getString(COLUMN_ROUTINE_TYPE));
+		return PROCEDURE_ID.equals(rs.getString(COLUMN_ROUTINE_TYPE));
 	}
 
 	protected Routine processRow(ResultSet rs) throws SQLException {

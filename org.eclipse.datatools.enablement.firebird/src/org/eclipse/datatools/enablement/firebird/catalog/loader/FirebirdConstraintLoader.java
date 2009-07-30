@@ -21,6 +21,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ import java.util.TreeMap;
 import org.eclipse.datatools.connectivity.sqm.core.rte.ICatalogObject;
 import org.eclipse.datatools.connectivity.sqm.loader.IConnectionFilterProvider;
 import org.eclipse.datatools.connectivity.sqm.loader.JDBCTableConstraintLoader;
+import org.eclipse.datatools.enablement.firebird.Activator;
 import org.eclipse.datatools.modelbase.sql.constraints.CheckConstraint;
 import org.eclipse.datatools.modelbase.sql.constraints.ForeignKey;
 import org.eclipse.datatools.modelbase.sql.constraints.PrimaryKey;
@@ -40,9 +42,9 @@ import org.eclipse.datatools.modelbase.sql.constraints.UniqueConstraint;
 import org.eclipse.datatools.modelbase.sql.expressions.SQLExpressionsFactory;
 import org.eclipse.datatools.modelbase.sql.expressions.SearchCondition;
 import org.eclipse.datatools.modelbase.sql.schema.ReferentialActionType;
-import org.eclipse.datatools.modelbase.sql.tables.Table;
 
 /**
+ * Constraint loader for the Firebird database.
  * 
  * @author Roman Rokytskyy
  * @author Mark Rotteveel
@@ -61,17 +63,29 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
         CASCADE_TYPE_MAP = Collections.unmodifiableMap(cascadeMap);
     }
 
+    /**
+     * Constructs the constraint loader with a filter.
+     * 
+     * @param catalogObject the Catalog object upon which this loader operates.
+     * @param connectionFilterProvider the filter provider used for filtering 
+     *          the "constraint" objects being loaded.
+     */
 	public FirebirdConstraintLoader(ICatalogObject catalogObject,
 			IConnectionFilterProvider connectionFilterProvider) {
 
 		super(catalogObject, connectionFilterProvider);
 	}
 
+	/**
+	 * Constructs the constraint loader using no filter.
+	 * 
+	 * @param catalogObject the Catalog object upon which this loader operates.
+	 */
 	public FirebirdConstraintLoader(ICatalogObject catalogObject) {
 		super(catalogObject);
 	}
 
-	private static final String GET_IMPORTED_KEYS_START = 
+	private static final String GET_IMPORTED_KEYS = 
 	          "SELECT"
 			+ " null as PKTABLE_CAT," 
 			+ " null as PKTABLE_SCHEM,"
@@ -102,27 +116,38 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 			+ " AND ISP.RDB$FIELD_POSITION = ISF.RDB$FIELD_POSITION "
 			+ " ORDER BY 3, 9";
 
+	/**
+	 * Creates a result set to be used by the foreign key constraint loading logic.
+	 * 
+     * @return a result containing the information used to initialize ForeignKey
+     *         objects
+     * 
+     * @throws SQLException if an error occurs
+	 */
 	protected ResultSet createForeignKeyResultSet() throws SQLException {
 		try {
-			Table table = getTable();
 			Connection connection = getCatalogObject().getConnection();
 
 			PreparedStatement stmt = connection
-					.prepareStatement(GET_IMPORTED_KEYS_START);
-			stmt.setString(1, table.getName());
+					.prepareStatement(GET_IMPORTED_KEYS);
+			stmt.setString(1, getTable().getName());
 
 			return stmt.executeQuery();
 
 		} catch (RuntimeException e) {
-			//FIXME Fix message
-			SQLException error = new SQLException(/*MessageFormat.format(
-					Messages.Error_Unsupported_DatabaseMetaData_Method,
-					new Object[] { "FirebirdMetaData.$getPrimaryKeys()" })*/); //$NON-NLS-1$
+			SQLException error = new SQLException(MessageFormat.format(
+                    Activator.getResourceString("error.constraint.loading"),
+					new Object[] { 
+                        Activator.getResourceString("constraint.foreign") })); //$NON-NLS-1$
 			error.initCause(e);
 			throw error;
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableConstraintLoader#loadForeignKeys(java.util.List, java.util.Collection)
+	 */
 	public void loadForeignKeys(List containmentList, Collection existingFKs)
 			throws SQLException {
 		ResultSet rs = null;
@@ -203,7 +228,7 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 		}
 	}
 
-	private static final String GET_PRIMARY_KEYS_START = 
+	private static final String GET_PRIMARY_KEYS = 
 	          "SELECT "
 			+ " null as TABLE_CAT,"
 			+ " null as TABLE_SCHEM,"
@@ -220,27 +245,37 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 			+ " AND RC.RDB$CONSTRAINT_TYPE = 'PRIMARY KEY' "
 			+ "ORDER BY ISGMT.RDB$FIELD_NAME";
 
+	/**
+     * Creates a result set to be used by the primary key loading logic.
+     * 
+     * @return a result containing the information used to initialize PrimaryKey
+     * 
+     * @throws SQLException if an error occurs
+     */
 	protected ResultSet createPrimaryKeyResultSet() throws SQLException {
 		try {
-			Table table = getTable();
 			Connection connection = getCatalogObject().getConnection();
 
 			PreparedStatement stmt = connection
-					.prepareStatement(GET_PRIMARY_KEYS_START);
-			stmt.setString(1, table.getName());
+					.prepareStatement(GET_PRIMARY_KEYS);
+			stmt.setString(1, getTable().getName());
 
 			return stmt.executeQuery();
 
 		} catch (RuntimeException e) {
-			//FIXME Fix message
-			SQLException error = new SQLException(/*MessageFormat.format(
-					Messages.Error_Unsupported_DatabaseMetaData_Method,
-					new Object[] { "FirebirdMetaData.$getPrimaryKeys()" })*/); //$NON-NLS-1$
+            SQLException error = new SQLException(MessageFormat.format(
+                    Activator.getResourceString("error.constraint.loading"),
+                    new Object[] { 
+                        Activator.getResourceString("constraint.primary") })); //$NON-NLS-1$
 			error.initCause(e);
 			throw error;
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableConstraintLoader#loadPrimaryKey(org.eclipse.datatools.modelbase.sql.constraints.PrimaryKey)
+	 */
 	public PrimaryKey loadPrimaryKey(PrimaryKey existingPK) throws SQLException {
 		ResultSet rs = null;
 		try {
@@ -281,7 +316,7 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 		}
 	}
 
-	private static final String GET_EXPORTED_KEYS_START = 
+	private static final String GET_EXPORTED_KEYS = 
 	          "SELECT "
 			// +"  null as PKTABLE_CAT "
 			// +" ,null as PKTABLE_SCHEM "
@@ -312,29 +347,38 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 			+ " AND ISP.RDB$FIELD_POSITION = ISF.RDB$FIELD_POSITION "
 			+ "ORDER BY 7, 9";
 
+	/**
+     * Creates a result set to be used by the unique constraint loading logic.
+     * 
+     * @return a result containing the information used to initialize
+     *         UniqueConstraint objects
+     * 
+     * @throws SQLException if an error occurs
+     */
 	protected ResultSet createUniqueConstraintResultSet() throws SQLException {
 		try {
-			Table table = getTable();
 			Connection connection = getCatalogObject().getConnection();
 
 			PreparedStatement stmt = connection
-					.prepareStatement(GET_EXPORTED_KEYS_START);
-			stmt.setString(1, table.getName());
+					.prepareStatement(GET_EXPORTED_KEYS);
+			stmt.setString(1, getTable().getName());
 
 			return stmt.executeQuery();
 
 		} catch (RuntimeException e) {
-			//FIXME Fix message
-			SQLException error = new SQLException(/*
-					MessageFormat
-							.format(
-									Messages.Error_Unsupported_DatabaseMetaData_Method,
-									new Object[] { "FirebirdMetaData.$getUniqueConstraints()" })*/); //$NON-NLS-1$
+            SQLException error = new SQLException(MessageFormat.format(
+                    Activator.getResourceString("error.constraint.loading"),
+                    new Object[] { 
+                        Activator.getResourceString("constraint.unique") })); //$NON-NLS-1$
 			error.initCause(e);
 			throw error;
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableConstraintLoader#loadUniqueConstraints(org.eclipse.datatools.modelbase.sql.constraints.PrimaryKey, java.util.List, java.util.Collection)
+	 */
 	public void loadUniqueConstraints(PrimaryKey pk, List containmentList,
 			Collection existingUCs) throws SQLException {
 		ResultSet rs = null;
@@ -408,22 +452,29 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 			+ " rc.rdb$constraint_type = 'CHECK'"
 			+ " AND rc.rdb$relation_name = ?";
 
+	/**
+     * Creates a result set to be used by the check constraint loading logic.
+     * 
+     * @return a result containing the information used to initialize CheckConstraint
+     *         objects
+     * 
+     * @throws SQLException if an error occurs
+     */
 	protected ResultSet createCheckConstraintResultSet() throws SQLException {
 		try {
-			Table table = getTable();
 			Connection connection = getCatalogObject().getConnection();
 
 			PreparedStatement stmt = connection
 					.prepareStatement(GET_CHECK_CONSTRAINTS);
-			stmt.setString(1, table.getName());
+			stmt.setString(1, getTable().getName());
 
 			return stmt.executeQuery();
 
 		} catch (RuntimeException e) {
-			// FIXME Fix message
-			SQLException error = new SQLException(/*MessageFormat.format(
-					Messages.Error_Unsupported_DatabaseMetaData_Method,
-					new Object[] { "FirebirdMetaData.$getCheckConstraints()" })*/); //$NON-NLS-1$
+            SQLException error = new SQLException(MessageFormat.format(
+                    Activator.getResourceString("error.constraint.loading"),
+                    new Object[] { 
+                        Activator.getResourceString("constraint.check") })); //$NON-NLS-1$
 			error.initCause(e);
 			throw error;
 		}
@@ -436,39 +487,39 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 	 * 
 	 * @param containmentList
 	 *            the containment list held by parent
-	 * @param existingUCs
+	 * @param existingCheckConstraints
 	 *            the catalog objects which were previously loaded
 	 * 
 	 * @throws SQLException
 	 *             if an error occurred during loading.
 	 */
 	public void loadCheckConstraints(List containmentList,
-			Collection existingUCs) throws SQLException {
+			Collection existingCheckConstraints) throws SQLException {
 		ResultSet rs = null;
 		try {
 			Map constraints = new HashMap();
 			for (rs = createCheckConstraintResultSet(); rs.next();) {
-				String ucName = rs.getString(CHECK_CONSTRAINT_NAME);
+				String constraintName = rs.getString(CHECK_CONSTRAINT_NAME);
 
-				if (ucName != null)
-					ucName = ucName.trim();
+				if (constraintName != null)
+					constraintName = constraintName.trim();
 
-				if (!constraints.containsKey(ucName)) {
-					CheckConstraint uc = (CheckConstraint) getAndRemoveSQLObject(
-							existingUCs, ucName);
+				if (!constraints.containsKey(constraintName)) {
+					CheckConstraint checkConstraint = (CheckConstraint) getAndRemoveSQLObject(
+							existingCheckConstraints, constraintName);
 
-					if (uc == null) {
-						// create the next UC
-						uc = SQLConstraintsFactory.eINSTANCE.createCheckConstraint();
-						uc.setName(ucName);
+					if (checkConstraint == null) {
+						// create the next check constraint
+						checkConstraint = SQLConstraintsFactory.eINSTANCE.createCheckConstraint();
+						checkConstraint.setName(constraintName);
 					}
 
 					SearchCondition searchCondition = SQLExpressionsFactory.eINSTANCE.createSearchConditionDefault();
 					searchCondition.setSQL(rs.getString(CHECK_CONSTRAINT_SOURCE));
-					uc.setSearchCondition(searchCondition);
+					checkConstraint.setSearchCondition(searchCondition);
 
-					containmentList.add(uc);
-					constraints.put(ucName, uc);
+					containmentList.add(checkConstraint);
+					constraints.put(constraintName, checkConstraint);
 				}
 			}
 		} finally {

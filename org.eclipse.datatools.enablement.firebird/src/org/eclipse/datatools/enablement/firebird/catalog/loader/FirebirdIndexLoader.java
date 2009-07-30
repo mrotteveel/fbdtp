@@ -12,6 +12,7 @@
  *
  * Contributors:
  *     Roman Rokytskyy  - Initial implementation
+ *     Mark Rotteveel   - Code cleanup, further development
  */ 
 
 package org.eclipse.datatools.enablement.firebird.catalog.loader;
@@ -26,14 +27,16 @@ import java.util.List;
 import org.eclipse.datatools.connectivity.sqm.core.rte.ICatalogObject;
 import org.eclipse.datatools.connectivity.sqm.loader.IConnectionFilterProvider;
 import org.eclipse.datatools.connectivity.sqm.loader.JDBCTableIndexLoader;
+import org.eclipse.datatools.enablement.firebird.Activator;
 import org.eclipse.datatools.modelbase.sql.constraints.Index;
 import org.eclipse.datatools.modelbase.sql.constraints.IndexMember;
 import org.eclipse.datatools.modelbase.sql.tables.Column;
-import org.eclipse.datatools.modelbase.sql.tables.Table;
 
 /**
+ * Index loader for the Firebird database.
  * 
  * @author Roman Rokytskyy
+ * @author Mark Rotteveel
  * 
  */
 public class FirebirdIndexLoader extends JDBCTableIndexLoader {
@@ -60,6 +63,13 @@ public class FirebirdIndexLoader extends JDBCTableIndexLoader {
 
 	private final boolean systemIndexes;
 
+	/**
+	 * 
+     * @param catalogObject the Table object upon which this loader operates.
+     * @param connectionFilterProvider the filter provider used for filtering
+     *        the "index" objects being loaded
+	 * @param systemIndexes true: system indices, false: normal indices
+	 */
 	public FirebirdIndexLoader(ICatalogObject catalogObject,
 			IConnectionFilterProvider connectionFilterProvider,
 			boolean systemIndexes) {
@@ -68,6 +78,11 @@ public class FirebirdIndexLoader extends JDBCTableIndexLoader {
 		this.systemIndexes = systemIndexes;
 	}
 
+	/**
+	 * 
+     * @param catalogObject the Table object upon which this loader operates.
+	 * @param systemIndexes true: system indices, false: normal indices
+	 */
 	public FirebirdIndexLoader(ICatalogObject catalogObject,
 			boolean systemIndexes) {
 		super(catalogObject);
@@ -75,29 +90,36 @@ public class FirebirdIndexLoader extends JDBCTableIndexLoader {
 		this.systemIndexes = systemIndexes;
 	}
 
+	/**
+     * Creates a result set to be used by the loading logic.
+     * 
+     * @return a result containing the information used to initialize Index
+     *         objects
+     * 
+     * @throws SQLException if an error occurs
+     */
 	protected ResultSet createResultSet() throws SQLException {
 		try {
-			Table table = getTable();
 			Connection connection = getCatalogObject().getConnection();
 
 			PreparedStatement stmt = connection
 					.prepareStatement(GET_INDEX_INFO);
-			stmt.setString(1, table.getName());
+			stmt.setString(1, getTable().getName());
 			stmt.setInt(2, systemIndexes ? 1 : 0);
 
 			return stmt.executeQuery();
 		} catch (RuntimeException e) {
-			//FIXME Fix message
-			SQLException error = new SQLException(/*
-					MessageFormat
-							.format(
-									Messages.Error_Unsupported_DatabaseMetaData_Method,
-									new Object[] { "java.sql.DatabaseMetaData.getIndexInfo()" })*/); //$NON-NLS-1$
+			SQLException error = new SQLException(
+			        Activator.getResourceString("error.index.loading")); //$NON-NLS-1$
 			error.initCause(e);
 			throw error;
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableIndexLoader#loadIndexes(java.util.List, java.util.Collection)
+	 */
 	public void loadIndexes(List containmentList, Collection existingIndexes)
 			throws SQLException {
 		ResultSet rs = null;
@@ -154,6 +176,10 @@ public class FirebirdIndexLoader extends JDBCTableIndexLoader {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableIndexLoader#initIndexMember(org.eclipse.datatools.modelbase.sql.constraints.IndexMember, org.eclipse.datatools.modelbase.sql.tables.Column, java.sql.ResultSet)
+	 */
 	protected void initIndexMember(IndexMember im, Column column, ResultSet rs)
 			throws SQLException {
 		im.setColumn(column);
@@ -162,6 +188,10 @@ public class FirebirdIndexLoader extends JDBCTableIndexLoader {
 				.trim() : null));
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableIndexLoader#initIndex(org.eclipse.datatools.modelbase.sql.constraints.Index, java.sql.ResultSet)
+	 */
 	protected void initIndex(Index index, ResultSet rs) throws SQLException {
 		String columnIndexName = rs.getString(COLUMN_INDEX_NAME);
 		index.setName(columnIndexName != null ? columnIndexName.trim() : null);

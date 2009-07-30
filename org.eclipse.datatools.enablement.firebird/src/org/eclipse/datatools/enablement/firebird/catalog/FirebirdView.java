@@ -18,6 +18,7 @@
 package org.eclipse.datatools.enablement.firebird.catalog;
 
 import java.sql.Connection;
+import java.text.MessageFormat;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -31,6 +32,7 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EStructuralFeature;
 
 /**
+ * View implementation for Firebird
  * 
  * @author Roman Rokytskyy
  * @author Mark Rotteveel
@@ -45,6 +47,10 @@ public class FirebirdView extends JDBCView {
 	private final Object triggersMutex = new Object();
 	private boolean triggersLoaded = false;
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCView#refresh()
+	 */
 	public void refresh() {
 		synchronized (triggersMutex) {
 			triggersLoaded = false;
@@ -55,6 +61,10 @@ public class FirebirdView extends JDBCView {
 		super.refresh();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.datatools.modelbase.sql.tables.impl.TableImpl#getTriggers()
+	 */
 	public EList getTriggers() {
 		synchronized (triggersMutex) {
 			if (!triggersLoaded)
@@ -63,6 +73,9 @@ public class FirebirdView extends JDBCView {
 		return super.getTriggers();
 	}
 
+	/**
+	 * Loads the triggers for this view object.
+	 */
 	protected void loadTriggers() {
 	    synchronized (triggersMutex) {
     		EList triggerList = super.getTriggers();
@@ -78,25 +91,32 @@ public class FirebirdView extends JDBCView {
     
     			triggersLoaded = true;
        		} catch (Exception e) {
-       		    //TODO Externalize string
     			Activator.getDefault().getLog().log(
-    					new Status(IStatus.ERROR, Activator.PLUGIN_ID, 0,
-    							"Could not load the triggers for view "
-    									+ this.getName(), e));
+    			        new Status(IStatus.ERROR, Activator.PLUGIN_ID, 0,
+    							MessageFormat.format(
+    							        Activator.getResourceString("error.view.trigger.loading"),
+    							        new Object[] { getName() })
+    							, e));
     		}
     		this.eSetDeliver(deliver);
 	    }
 	}
 
 	public boolean isInsertable() {
+	    // TODO Implement firebird specific handling of insertable views
 		return super.isInsertable();
 	}
 
 	public boolean isUpdatable() {
+	    // TODO Implement firebird specific handling of updatable views
 		return super.isUpdatable();
 	}
-	
-   public boolean eIsSet(EStructuralFeature eFeature) {
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCView#eIsSet(org.eclipse.emf.ecore.EStructuralFeature)
+	 */
+    public boolean eIsSet(EStructuralFeature eFeature) {
         switch (eDerivedStructuralFeatureID(eFeature)) {
         case SQLTablesPackage.VIEW_TABLE__TRIGGERS:
             getTriggers();
@@ -106,17 +126,24 @@ public class FirebirdView extends JDBCView {
             break;
         }
         return super.eIsSet(eFeature);
-    }
+     }
 
-	public QueryExpression getQueryExpression() {
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.datatools.modelbase.sql.tables.impl.DerivedTableImpl#getQueryExpression()
+     */
+	 public QueryExpression getQueryExpression() {
 		synchronized (queryMutex) {
 			if (!queryLoaded)
 				loadQueryExpression();
 		}
 		return super.getQueryExpression();
-	}
-
-	protected void loadQueryExpression() {
+	 }
+	 
+	 /**
+	  * Load the query defining this view.
+	  */
+	 protected void loadQueryExpression() {
 	    synchronized (queryMutex) {
     		Connection connection = this.getConnection();
     
@@ -132,14 +159,15 @@ public class FirebirdView extends JDBCView {
     
     			queryLoaded = true;
     		} catch (Exception e) {
-    		    //TODO Externalize string
-    			Activator.getDefault().getLog().log(
-    					new Status(IStatus.ERROR, Activator.PLUGIN_ID, 0,
-    							"Could not load the query for view "
-    									+ this.getName(), e));
+                Activator.getDefault().getLog().log(
+                        new Status(IStatus.ERROR, Activator.PLUGIN_ID, 0,
+                                MessageFormat.format(
+                                        Activator.getResourceString("error.view.query.loading"),
+                                        new Object[] { getName() })
+                                , e));
     		}
     
     		this.eSetDeliver(deliver);
 	    }
-	}
+	 }
 }
