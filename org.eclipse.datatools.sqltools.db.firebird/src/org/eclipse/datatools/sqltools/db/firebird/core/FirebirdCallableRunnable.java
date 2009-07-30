@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007 - 2009 members of the Firebird development team
+ * and others.
+ * This file was created by members of the Firebird development team.
+ * All individual contributions remain the Copyright (C) of those
+ * individuals. Contributors to this file are either listed here or
+ * can be obtained from a source control (eg CVS) history command.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     Roman Rokytskyy  - Initial implementation
+ *     Mark Rotteveel   - Code cleanup, further development
+ */ 
+
 package org.eclipse.datatools.sqltools.db.firebird.core;
 
 import java.sql.Connection;
@@ -17,6 +34,11 @@ import org.eclipse.datatools.sqltools.routineeditor.result.CallableSQLResultRunn
 import org.eclipse.datatools.sqltools.routineeditor.ui.launching.LaunchUI;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
+/**
+ * 
+ * @author Roman Rokytskyy
+ *
+ */
 public class FirebirdCallableRunnable extends CallableSQLResultRunnable {
     public FirebirdCallableRunnable(Connection con,
             ILaunchConfiguration configuration, boolean closeCon,
