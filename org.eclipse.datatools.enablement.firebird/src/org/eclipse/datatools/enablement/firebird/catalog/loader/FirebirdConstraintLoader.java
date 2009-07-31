@@ -175,27 +175,8 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 					}
 					containmentList.add(fk);
 
-					String updateRule = rs.getString(COLUMN_UPDATE_RULE);
-					if (updateRule != null) {
-						updateRule = updateRule.trim();
-					}
-					
-					ReferentialActionType updateType = (ReferentialActionType)CASCADE_TYPE_MAP.get(updateRule);
-					if (updateType == null) {
-					    updateType = ReferentialActionType.NO_ACTION_LITERAL;
-					}
-					fk.setOnUpdate(updateType);
-
-
-					String deleteRule = rs.getString(COLUMN_DELETE_RULE);
-					if (deleteRule != null) {
-					    deleteRule = deleteRule.trim();
-					}
-					ReferentialActionType deleteType = (ReferentialActionType)CASCADE_TYPE_MAP.get(deleteRule);
-					if (deleteType == null) {
-					    deleteType = ReferentialActionType.NO_ACTION_LITERAL;
-					}
-					fk.setOnDelete(deleteType);
+					fk.setOnUpdate(getCascadeAction(rs.getString(COLUMN_UPDATE_RULE)));
+					fk.setOnDelete(getCascadeAction(rs.getString(COLUMN_DELETE_RULE)));
 
 					fk.setDeferrable(false);
 
@@ -226,6 +207,24 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 				closeResultSet(rs);
 			}
 		}
+	}
+	
+	/**
+	 * Resolve tha ReferentialActionType based on the actionName.
+	 * 
+	 * @param actionName Name of the action
+	 * @return Resolved ReferentialActionType (defaults to 
+	 *             ReferentialActionType.NO_ACTION_LITERAL if unresolvable)
+	 */
+	private ReferentialActionType getCascadeAction(String actionName) {
+	    if(actionName != null) {
+	        actionName = actionName.trim();
+	    }
+	    ReferentialActionType actionType = (ReferentialActionType)CASCADE_TYPE_MAP.get(actionName);
+	    if(actionType == null) {
+	        actionType = ReferentialActionType.NO_ACTION_LITERAL;
+	    }
+	    return actionType;
 	}
 
 	private static final String GET_PRIMARY_KEYS = 
