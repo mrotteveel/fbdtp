@@ -18,6 +18,7 @@
 package org.eclipse.datatools.enablement.firebird.catalog;
 
 import java.sql.Connection;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -38,6 +39,7 @@ import org.eclipse.datatools.modelbase.sql.constraints.PrimaryKey;
 import org.eclipse.emf.common.util.EList;
 
 /**
+ * Table implementation for the Firebird database.
  * 
  * @author Roman Rokytskyy
  * @author Mark Rotteveel
@@ -45,7 +47,7 @@ import org.eclipse.emf.common.util.EList;
  */
 public class FirebirdTable extends JDBCTable {
 
-	private boolean showSystemObjects;
+	private final boolean systemTable;
 
 	private final Object checkConstraintsMutex = new Object();
 	private boolean checkConstraintsLoaded = false;
@@ -55,15 +57,35 @@ public class FirebirdTable extends JDBCTable {
 
 	private final Object triggersMutex = new Object();
 	private boolean triggersLoaded = false;
+	
+	/**
+	 * Create a new FirebirdTable
+	 * @param systemTable true if a system table.
+	 */
+	public FirebirdTable(boolean systemTable) {
+	    this.systemTable = true;
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCTable#createConstraintLoader()
+	 */
 	protected JDBCTableConstraintLoader createConstraintLoader() {
 		return new FirebirdConstraintLoader(this);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCTable#createIndexLoader()
+	 */
 	protected JDBCTableIndexLoader createIndexLoader() {
-		return new FirebirdIndexLoader(this, showSystemObjects);
+		return new FirebirdIndexLoader(this, systemTable);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCTable#refresh()
+	 */
 	public void refresh() {
 		synchronized (triggersMutex) {
 			triggersLoaded = false;
@@ -78,8 +100,11 @@ public class FirebirdTable extends JDBCTable {
 		super.refresh();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.datatools.modelbase.sql.tables.impl.TableImpl#getTriggers()
+	 */
 	public EList getTriggers() {
-
 		synchronized (triggersMutex) {
 			if (!triggersLoaded)
 				loadTriggers();
@@ -88,38 +113,45 @@ public class FirebirdTable extends JDBCTable {
 		return super.getTriggers();
 	}
 
+	/**
+     * Loads the triggers for this table object.
+     */
 	protected void loadTriggers() {
-		EList triggerList = super.getTriggers();
-		triggerList.clear();
-		Connection connection = this.getConnection();
-
-		boolean deliver = this.eDeliver();
-		this.eSetDeliver(false);
-
-		try {
-
-			FirebirdTableLoader.loadTriggers(connection, getSchema(), this,
-					triggerList);
-
-			triggersLoaded = true;
-
-		} catch (Exception e) {
-			Activator.getDefault().getLog().log(
-					new Status(IStatus.ERROR, Activator.PLUGIN_ID, 0,
-							"Could not load the triggers for table "
-									+ this.getName(), e));
-		}
-
-		this.eSetDeliver(deliver);
+	    synchronized (triggersMutex) {
+    		EList triggerList = super.getTriggers();
+    		triggerList.clear();
+    		Connection connection = this.getConnection();
+    
+    		boolean deliver = this.eDeliver();
+    		this.eSetDeliver(false);
+    
+    		try {
+    			FirebirdTableLoader.loadTriggers(connection, getSchema(), this,
+    					triggerList);
+    
+    			triggersLoaded = true;
+       		} catch (Exception e) {
+    			Activator.getDefault().getLog().log(
+    					new Status(IStatus.ERROR, Activator.PLUGIN_ID, 0,
+    							MessageFormat.format(
+    							        Activator.getResourceString("error.table.trigger.loading"),
+    							        new Object[] { getName() })
+    							, e));
+    		}
+    
+    		this.eSetDeliver(deliver);
+	    }
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCTable#getConstraints()
+	 */
 	public EList getConstraints() {
-
 		synchronized (checkConstraintsMutex) {
 			if (!checkConstraintsLoaded)
 				loadCheckConstraints();
 		}
-
 		synchronized (primaryKeyMutex) {
 			if (!primaryKeyLoaded)
 				loadPrimaryKey();
@@ -128,48 +160,73 @@ public class FirebirdTable extends JDBCTable {
 		return super.getConstraints();
 	}
 
+	/**
+	 * Load the check constraints for this table.
+	 */
 	protected void loadCheckConstraints() {
-		boolean deliver = eDeliver();
-		try {
-			List container = super.getConstraints();
-
-			List existingCheckConstraints = internalGetCheckConstraints(container);
-			container.removeAll(existingCheckConstraints);
-
-			((FirebirdConstraintLoader) getConstraintLoader())
-					.loadCheckConstraints(container, existingCheckConstraints);
-
-			checkConstraintsLoaded = true;
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			eSetDeliver(deliver);
-		}
+	    synchronized(checkConstraintsMutex) {
+    		boolean deliver = eDeliver();
+    		List container = super.getConstraints();
+    
+    		List existingCheckConstraints = internalGetCheckConstraints(container);
+    		container.removeAll(existingCheckConstraints);
+    		try {
+    			((FirebirdConstraintLoader) getConstraintLoader())
+    					.loadCheckConstraints(container, existingCheckConstraints);
+    
+    			checkConstraintsLoaded = true;
+    		} catch (Exception e) {
+                Activator.getDefault().getLog().log(
+                        new Status(IStatus.ERROR, Activator.PLUGIN_ID, 0,
+                                MessageFormat.format(
+                                        Activator.getResourceString("error.table.constraint.loading"),
+                                        new Object[] {
+                                            Activator.getResourceString("constraint.check"),
+                                            getName() })
+                                , e));
+    		} 
+   			eSetDeliver(deliver);
+	    }
 	}
 
+	/**
+	 * Load the primary key for this table.
+	 */
 	protected void loadPrimaryKey() {
-		boolean deliver = eDeliver();
-		try {
-			List container = super.getConstraints();
-
-			PrimaryKey existingPrimaryKey = internalGetPrimaryKey(container);
-
-			FirebirdConstraintLoader firebirdConstraintLoader = ((FirebirdConstraintLoader) getConstraintLoader());
-
-			PrimaryKey newPrimaryKey = firebirdConstraintLoader
-					.loadPrimaryKey(existingPrimaryKey);
-
-			if (newPrimaryKey != null)
-				container.add(newPrimaryKey);
-
-			primaryKeyLoaded = true;
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			eSetDeliver(deliver);
-		}
+	    synchronized(primaryKeyMutex) {
+    		boolean deliver = eDeliver();
+    		List container = super.getConstraints();
+    		PrimaryKey existingPrimaryKey = internalGetPrimaryKey(container);
+    		FirebirdConstraintLoader firebirdConstraintLoader = ((FirebirdConstraintLoader) getConstraintLoader());
+    
+    		try {
+    			PrimaryKey newPrimaryKey = firebirdConstraintLoader
+    					.loadPrimaryKey(existingPrimaryKey);
+    
+    			if (newPrimaryKey != null)
+    				container.add(newPrimaryKey);
+    
+    			primaryKeyLoaded = true;
+    		} catch (Exception e) {
+                Activator.getDefault().getLog().log(
+                        new Status(IStatus.ERROR, Activator.PLUGIN_ID, 0,
+                                MessageFormat.format(
+                                        Activator.getResourceString("error.table.constraint.loading"),
+                                        new Object[] {
+                                            Activator.getResourceString("constraint.primary"),
+                                            getName() })
+                                , e));
+    		}
+   			eSetDeliver(deliver);
+	    }
 	}
 
+	/**
+	 * Filters a given collection of constraints for CheckConstraints.
+	 * 
+	 * @param constraints List of constraints
+	 * @return List of CheckConstraints in the collection constraints.
+	 */
 	private List internalGetCheckConstraints(Collection constraints) {
 		List tmpConstraints = new ArrayList();
 		for (Iterator it = constraints.iterator(); it.hasNext();) {
@@ -181,6 +238,12 @@ public class FirebirdTable extends JDBCTable {
 		return tmpConstraints;
 	}
 
+	/**
+     * Filters a given collection of constraints for the PrimaryKey.
+     * 
+     * @param constraints List of constraints
+     * @return PrimaryKey object in the collection constraints.
+     */
 	private PrimaryKey internalGetPrimaryKey(Collection constraints) {
 		for (Iterator it = constraints.iterator(); it.hasNext();) {
 			Constraint currentConstraint = (Constraint) it.next();
