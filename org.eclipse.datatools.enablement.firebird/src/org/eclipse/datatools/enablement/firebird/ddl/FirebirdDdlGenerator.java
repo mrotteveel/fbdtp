@@ -236,7 +236,6 @@ public class FirebirdDdlGenerator extends GenericDdlGenerator {
 	public String[] createSQLObjects(SQLObject[] elements,
 			boolean quoteIdentifiers, boolean qualifyNames,
 			IProgressMonitor progressMonitor) {
-		// TODO Auto-generated method stub
 		return super.createSQLObjects(elements, quoteIdentifiers, false,
 				progressMonitor);
 	}
