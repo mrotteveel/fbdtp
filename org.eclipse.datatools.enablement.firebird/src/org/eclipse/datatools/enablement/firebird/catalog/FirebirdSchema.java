@@ -13,7 +13,7 @@
  * Contributors:
  *     Roman Rokytskyy  - Initial implementation
  *     Mark Rotteveel   - Code cleanup, further development
- */ 
+ */
 
 package org.eclipse.datatools.enablement.firebird.catalog;
 
@@ -32,34 +32,47 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EStructuralFeature;
 
 /**
- * This class is the Schema implementation, its purpose is to load tables.
+ * Schema implementation for Firebird, its purpose is to load tables.
  * 
  * @author Roman Rokytskyy
  * @author Mark Rotteveel
  */
 public class FirebirdSchema extends JDBCSchema implements ICatalogObject {
 
-    private static final long serialVersionUID = 1L;
-
-    private boolean systemSchema;
+    private final boolean systemSchema;
 
     private final Object sequenceLoadMutex = new Object();
     private boolean sequencesLoaded = false;
 
+    /**
+     * 
+     * @param name
+     *            Name of the schema
+     * @param systemSchema
+     *            true if system schema
+     */
     public FirebirdSchema(String name, boolean systemSchema) {
         this.systemSchema = systemSchema;
         this.setName(name);
     }
 
-    public synchronized void refresh() {
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCSchema#refresh()
+     */
+    public void refresh() {
         synchronized (sequenceLoadMutex) {
             sequencesLoaded = false;
         }
         super.refresh();
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCSchema#eIsSet(org.eclipse.emf.ecore.EStructuralFeature)
+     */
     public boolean eIsSet(EStructuralFeature eFeature) {
-        switch(eDerivedStructuralFeatureID(eFeature)) {
+        switch (eDerivedStructuralFeatureID(eFeature)) {
             case SQLSchemaPackage.SCHEMA__TRIGGERS:
                 getTriggers();
                 break;
@@ -67,14 +80,26 @@ public class FirebirdSchema extends JDBCSchema implements ICatalogObject {
         return super.eIsSet(eFeature);
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCSchema#createTableLoader()
+     */
     protected JDBCTableLoader createTableLoader() {
         return new FirebirdTableLoader(this, systemSchema);
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCSchema#createRoutineLoader()
+     */
     protected JDBCRoutineLoader createRoutineLoader() {
         return new FirebirdRoutineLoader(this, systemSchema);
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.eclipse.datatools.modelbase.sql.schema.impl.SchemaImpl#getSequences()
+     */
     public EList getSequences() {
         synchronized (sequenceLoadMutex) {
             if (!sequencesLoaded)
@@ -84,6 +109,9 @@ public class FirebirdSchema extends JDBCSchema implements ICatalogObject {
         return super.getSequences();
     }
 
+    /**
+     * Load the sequences for this schema.
+     */
     protected void loadSequences() {
         synchronized (sequenceLoadMutex) {
             boolean deliver = eDeliver();
@@ -110,6 +138,10 @@ public class FirebirdSchema extends JDBCSchema implements ICatalogObject {
         }
     }
 
+    /**
+     * 
+     * @return sequence loader for this schema.
+     */
     protected FirebirdSequenceLoader getSequenceLoader() {
         return new FirebirdSequenceLoader(this, systemSchema);
     }
