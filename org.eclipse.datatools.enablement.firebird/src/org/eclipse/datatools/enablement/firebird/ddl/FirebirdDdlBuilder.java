@@ -28,6 +28,7 @@ import java.util.List;
 import org.eclipse.datatools.connectivity.sqm.core.rte.ICatalogObject;
 import org.eclipse.datatools.connectivity.sqm.core.rte.fe.GenericDdlBuilder;
 import org.eclipse.datatools.enablement.firebird.FirebirdConversionUtil;
+import org.eclipse.datatools.enablement.firebird.catalog.FirebirdParameter;
 import org.eclipse.datatools.enablement.firebird.catalog.FirebirdSchema;
 import org.eclipse.datatools.enablement.firebird.catalog.FirebirdTrigger;
 import org.eclipse.datatools.enablement.firebird.catalog.FirebirdUDF;
@@ -138,6 +139,7 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 		}
 		statement.append(SPACE);
 
+		// TODO See comment in FirebirdTrigger.setFirebirdTriggerType(int)
 		if (trigger.isDeleteType()) {
 			statement.append(DELETE);
 
@@ -162,6 +164,7 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 		statement.append(NEWLINE);
 
 		//Avoid hardcoded reference to Jaybird driver
+		// TODO Replace with select?
 		try {
 			DatabaseMetaData dbmd = ((ICatalogObject)trigger.getSchema()).getConnection().getMetaData();
 			Class metaClass = dbmd.getClass();
@@ -268,8 +271,7 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 
 		EList params = udf.getParameters();
 
-		FirebirdUDF.Parameter outParam = (FirebirdUDF.Parameter) udf
-				.getReturnScalar();
+		FirebirdParameter outParam = (FirebirdParameter) udf.getReturnScalar();
 		int outMechanism = Math.abs(outParam.getMechanism());
 
 		List inParams = new ArrayList();
@@ -280,7 +282,7 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 
 		statement.append(NEWLINE);
 		for (Iterator iter = inParams.iterator(); iter.hasNext();) {
-			FirebirdUDF.Parameter param = (FirebirdUDF.Parameter) iter.next();
+			FirebirdParameter param = (FirebirdParameter) iter.next();
 
 			// if (udf.getReturnArgument() == param.getArgumentPosition())
 			// continue;
