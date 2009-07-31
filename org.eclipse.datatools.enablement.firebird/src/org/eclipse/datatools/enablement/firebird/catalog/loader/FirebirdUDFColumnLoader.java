@@ -30,6 +30,7 @@ import org.eclipse.datatools.connectivity.sqm.loader.IConnectionFilterProvider;
 import org.eclipse.datatools.connectivity.sqm.loader.JDBCUDFColumnLoader;
 import org.eclipse.datatools.enablement.firebird.Activator;
 import org.eclipse.datatools.enablement.firebird.FirebirdConversionUtil;
+import org.eclipse.datatools.enablement.firebird.catalog.FirebirdParameter;
 import org.eclipse.datatools.enablement.firebird.catalog.FirebirdUDF;
 import org.eclipse.datatools.modelbase.dbdefinition.PredefinedDataTypeDefinition;
 import org.eclipse.datatools.modelbase.sql.datatypes.PredefinedDataType;
@@ -67,7 +68,7 @@ public class FirebirdUDFColumnLoader extends JDBCUDFColumnLoader {
     protected void initParameter(Parameter parameter, ResultSet rs) throws SQLException {
         FirebirdUDF udf = (FirebirdUDF)getRoutine();
         
-        FirebirdUDF.Parameter udfParameter = (FirebirdUDF.Parameter)parameter;
+        FirebirdParameter udfParameter = (FirebirdParameter)parameter;
         
         int argumentPosition = rs.getInt("argument_position");
         int mechanism = rs.getInt("mechanism");
@@ -208,7 +209,7 @@ public class FirebirdUDFColumnLoader extends JDBCUDFColumnLoader {
      * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineColumnLoader#createParameter()
      */
     protected Parameter createParameter() {
-        return new FirebirdUDF.Parameter();
+        return new FirebirdParameter();
     }
 
     /*
