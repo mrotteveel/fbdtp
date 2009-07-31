@@ -12,6 +12,7 @@
  *
  * Contributors:
  *     Brian Fitzpatrick - Initial implementation
+ *     Roman Rokytskyy   - Initial implementation
  *     Mark Rotteveel    - Code cleanup, further development
  */ 
 
@@ -19,6 +20,7 @@ package org.eclipse.datatools.enablement.firebird;
 
 /**
  * @author brianf
+ * @author Roman Rokytskyy
  * @author Mark Rotteveel
  *
  */

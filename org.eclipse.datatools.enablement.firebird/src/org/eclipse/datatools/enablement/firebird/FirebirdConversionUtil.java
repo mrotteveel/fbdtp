@@ -32,6 +32,7 @@ public class FirebirdConversionUtil {
 
 	private static Map charSets = new HashMap();
 	private static Map charSetsInversed = new HashMap();
+	//TODO Complete list?
 	static {
 		charSets.put("NONE", Integer.valueOf(0));
 		charSets.put("OCTETS", Integer.valueOf(1));
@@ -82,7 +83,7 @@ public class FirebirdConversionUtil {
 		charSets.put("KOI8U", Integer.valueOf(64));
 		charSets.put("WIN1258", Integer.valueOf(65));
 
-		// create also an inverted map
+		// create an inverted map
 		for (Iterator iter = charSets.entrySet().iterator(); iter.hasNext();) {
 			Map.Entry entry = (Map.Entry) iter.next();
 
@@ -90,7 +91,7 @@ public class FirebirdConversionUtil {
 		}
 	};
 
-	//TODO Add additional types
+	//TODO Verify (and add) other types
 	private static final short smallint_type = 7;
 	private static final short integer_type = 8;
 	private static final short quad_type = 9;

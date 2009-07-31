@@ -13,10 +13,16 @@
  * Contributors:
  *     Mark Rotteveel   - Initial implementation
  */ 
+
 package org.eclipse.datatools.enablement.firebird;
 
 import org.eclipse.datatools.connectivity.drivers.jdbc.JDBCPasswordPropertyPersistenceHook;
 
+/**
+ * 
+ * @author Mark Rotteveel
+ *
+ */
 public class FirebirdPasswordPersistenceHook extends
         JDBCPasswordPropertyPersistenceHook {
 
