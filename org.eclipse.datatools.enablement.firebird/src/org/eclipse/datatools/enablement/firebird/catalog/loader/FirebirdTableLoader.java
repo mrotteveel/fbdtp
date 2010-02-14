@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 - 2009 members of the Firebird development team
+ * Copyright (C) 2007 - 2010 members of the Firebird development team
  * and others.
  * This file was created by members of the Firebird development team.
  * All individual contributions remain the Copyright (C) of those
@@ -21,11 +21,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.MessageFormat;
 
 import org.eclipse.datatools.connectivity.sqm.core.rte.ICatalogObject;
 import org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCTemporaryTable;
 import org.eclipse.datatools.connectivity.sqm.loader.IConnectionFilterProvider;
 import org.eclipse.datatools.connectivity.sqm.loader.JDBCTableLoader;
+import org.eclipse.datatools.enablement.firebird.Activator;
 import org.eclipse.datatools.enablement.firebird.catalog.FirebirdTable;
 import org.eclipse.datatools.enablement.firebird.catalog.FirebirdTrigger;
 import org.eclipse.datatools.enablement.firebird.catalog.FirebirdView;
@@ -51,12 +53,12 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 //
 //	private static final String[] SYSTEM_TABLE_TYPES = { TYPE_SYSTEM_TABLE };
 
-	private static final String SYSTEM_TABLE_SELECT = ""
-			+ "SELECT "
+	private static final String SYSTEM_TABLE_SELECT = 
+	          "SELECT "
 			+ " NULL AS table_cat,"
 			+ " NULL AS table_schem,"
 			+ " r.rdb$relation_name AS table_name,"
-			+ " 'SYSTEM TABLE' AS table_type,"
+			+ " '" + TYPE_SYSTEM_TABLE + "' AS table_type,"
 			+ " r.rdb$description AS remarks,"
 			+ " r.rdb$owner_name AS owner_name,"
 			+ " (SELECT count(*) FROM rdb$triggers t"
@@ -66,14 +68,15 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 			+ "WHERE"
 			+ " r.rdb$system_flag = 1";
 
-	private static final String USER_TABLE_SELECT = ""
-			+ "SELECT "
+	// TODO Still valid with existence of GTT in 2.1 and higher?
+	private static final String USER_TABLE_SELECT = 
+	          "SELECT "
 			+ " NULL AS table_cat,"
 			+ " NULL AS table_schem,"
 			+ " r.rdb$relation_name AS table_name,"
 			+ " CASE"
-			+ "  WHEN r.rdb$view_source IS NOT NULL THEN 'VIEW'"
-			+ "  ELSE 'TABLE'"
+			+ "  WHEN r.rdb$view_source IS NOT NULL THEN '" + TYPE_VIEW + "'"
+			+ "  ELSE '" + TYPE_TABLE + "'"
 			+ " END AS table_type,"
 			+ " r.rdb$description AS remarks,"
 			+ " r.rdb$owner_name AS owner_name,"
@@ -86,6 +89,12 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 
 	private final boolean systemTables;
 
+	/**
+     * @param catalogObject the Catalog object upon which this loader operates.
+     * @param connectionFilterProvider the filter provider used for filtering
+     *        the "schema" objects being loaded
+     * @param systemTables true: load system objects, false: load user objects
+     */
 	public FirebirdTableLoader(ICatalogObject catalogObject,
 			IConnectionFilterProvider connectionFilterProvider,
 			boolean systemTables) {
@@ -97,6 +106,10 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 		replaceTableFactories();
 	}
 
+	/**
+     * @param catalogObject the Catalog object upon which this loader operates.
+     * @param systemTables true: load system objects, false: load user objects
+     */
 	public FirebirdTableLoader(ICatalogObject catalogObject,
 			boolean systemTables) {
 		super(catalogObject);
@@ -106,25 +119,31 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 		replaceTableFactories();
 	}
 
+	/**
+     * Creates a result set to be used by the loading logic.
+     * 
+     * @return a result containing the information used to initialize Routine
+     *         objects
+     * 
+     * @throws SQLException if an error occurs
+     */
 	protected ResultSet createResultSet() throws SQLException {
 		try {
 			Connection connection = getCatalogObject().getConnection();
 			return connection.createStatement().executeQuery(
 					systemTables ? SYSTEM_TABLE_SELECT : USER_TABLE_SELECT);
 		} catch (RuntimeException e) {
-			SQLException error = new SQLException(/*
-												 * MessageFormat.format(
-												 * Messages.
-												 * Error_Unsupported_DatabaseMetaData_Method
-												 * , new Object[] {
-												 * "java.sql.DatabaseMetaData.getTables()"
-												 * })
-												 */); //$NON-NLS-1$
+			SQLException error = new SQLException(
+			        Activator.getResourceString("error.table.loading")); //$NON-NLS-1$
 			error.initCause(e);
 			throw error;
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableLoader#processRow(java.sql.ResultSet)
+	 */
 	protected Table processRow(ResultSet rs) throws SQLException {
 		String tableName = rs.getString(COLUMN_TABLE_NAME);
 		if (tableName == null || isFiltered(tableName)) {
@@ -139,6 +158,9 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 		return table;
 	}
 
+	/**
+	 * Replaces the default table factories with Firebird specific implementations
+	 */
 	protected void replaceTableFactories() {
 		super.registerTableFactory(TYPE_TABLE, new FBTableFactory());
 		super.registerTableFactory(TYPE_VIEW, new FBViewFactory());
@@ -146,30 +168,58 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 				new FBGlobalTempTableFactory());
 	}
 
-	public static class FBTableFactory extends JDBCTableLoader.TableFactory {
+	/**
+	 * TableFactory implementation for normal tables in Firebird.
+	 * 
+	 * @author Roman Rokytskyy
+	 * @author Mark Rotteveel
+	 *
+	 */
+	public class FBTableFactory extends JDBCTableLoader.TableFactory {
+	    
+	    /*
+	     * (non-Javadoc)
+	     * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableLoader.TableFactory#newTable()
+	     */
 		protected Table newTable() {
-			return new FirebirdTable();
+			return new FirebirdTable(systemTables);
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableLoader.TableFactory#createTable(java.sql.ResultSet)
+		 */
 		public Table createTable(ResultSet rs) throws SQLException {
 			Table result = super.createTable(rs);
 			result.setName(result.getName() != null ? result.getName().trim()
 					: null);
 			return result;
 		}
-
 	}
 
-	public static class FBViewFactory extends JDBCTableLoader.TableFactory {
+	/**
+	 * TableFactory implementation for views in Firebird.
+	 * 
+	 * @author Roman Rokytskyy
+	 * @author Mark Rotteveel
+	 *
+	 */
+	public class FBViewFactory extends FBTableFactory {
+	    
+	    /*
+	     * (non-Javadoc)
+	     * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableLoader.TableFactory#newTable()
+	     */
 		protected Table newTable() {
 			return new FirebirdView();
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableLoader.TableFactory#createTable(java.sql.ResultSet)
+		 */
 		public Table createTable(ResultSet rs) throws SQLException {
 			ViewTable result = (ViewTable) super.createTable(rs);
-
-			result.setName(result.getName() != null ? result.getName().trim()
-					: null);
 
 			int triggerCount = rs.getInt(COLUMN_TRIGGER_COUNT);
 
@@ -183,17 +233,21 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 
 	}
 
-	public static class FBGlobalTempTableFactory extends
-			JDBCTableLoader.TableFactory {
+	/**
+	 * TableFactory implementation for GTT in Firebird.
+	 * 
+	 * @author Roman Rokytskyy
+	 * @author Mark Rotteveel
+	 *
+	 */
+	public class FBGlobalTempTableFactory extends FBTableFactory {
+	    
+	    /*
+	     * (non-Javadoc)
+	     * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableLoader.TableFactory#newTable()
+	     */
 		protected Table newTable() {
 			return new JDBCTemporaryTable();
-		}
-
-		public Table createTable(ResultSet rs) throws SQLException {
-			Table result = super.createTable(rs);
-			result.setName(result.getName() != null ? result.getName().trim()
-					: null);
-			return result;
 		}
 	}
 	
@@ -211,8 +265,18 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 	    + " AND t.rdb$system_flag = 0 "
 	    + " ORDER BY 2";
 
+	/**
+	 * Load the triggers for the give table.
+	 * 
+	 * @param connection Connection to use for retrieving triggers
+	 * @param schema Schema object
+	 * @param table Table object
+	 * @param triggerList List of triggers
+	 * @throws SQLException if anything goes wrong
+	 */
 	public static void loadTriggers(Connection connection, Schema schema,
 			Table table, EList triggerList) throws SQLException {
+	    // TODO Verify if we need to empty or update the triggerList
 		PreparedStatement stmt = connection.prepareStatement(TRIGGER_SELECT);
 		try {
 			stmt.setString(1, table.getName());
@@ -222,16 +286,16 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 
 				trigger.setName(rs.getString("TRIGGER_NAME").trim());
 				trigger.setPosition(rs.getInt("TRIGGER_SEQ"));
-
-				trigger.setActive(rs.getObject("TRIGGER_INACTIVE") != null
-						&& rs.getInt("TRIGGER_INACTIVE") == 0);
-
+				trigger.setActive(rs.getInt("TRIGGER_INACTIVE") == 0
+				        && !rs.wasNull());
 				trigger.setFirebirdTriggerType(rs.getInt("TRIGGER_TYPE"));
 				trigger.setSchema(schema);
 				triggerList.add(trigger);
 			}
 		} finally {
-			stmt.close();
+		    try {
+		        stmt.close();
+		    } catch (SQLException ex) {}
 		}
 	}
 	
@@ -243,6 +307,15 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 	    + "WHERE"
 	    + " r.rdb$relation_name = ?";
 
+	/**
+	 * Load the source of the query backing the view.
+	 * 
+	 * @param connection Connection to use for retrieving the source.
+	 * @param schema Schema object
+	 * @param view View object
+	 * @return Source of the backing query.
+	 * @throws SQLException if anything goes wrong.
+	 */
 	public static String loadViewQuery(Connection connection, Schema schema,
 			ViewTable view) throws SQLException {
 
@@ -251,15 +324,22 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 			stmt.setString(1, view.getName());
 			ResultSet rs = stmt.executeQuery();
 			if (!rs.next())
-				throw new SQLException();
+				throw new SQLException(
+				        MessageFormat.format(
+				                Activator.getResourceString("error.view.noquery"),
+				                new Object[] { view.getName() }));
 
 			String query = rs.getString(1);
-
 			if (rs.next())
-				throw new SQLException();
+			    throw new SQLException(
+                        MessageFormat.format(
+                                Activator.getResourceString("error.view.multiplequery"),
+                                new Object[] { view.getName() }));
 			return query;
 		} finally {
-			stmt.close();
+	         try {
+	             stmt.close();
+	         } catch (SQLException ex) {}
 		}
 	}
 }
