@@ -41,6 +41,7 @@ import org.eclipse.datatools.modelbase.sql.tables.Column;
  */
 public class FirebirdIndexLoader extends JDBCTableIndexLoader {
 
+    //TODO Do we actually need to differentiate between system and non-system objects?
 	private static final String GET_INDEX_INFO = 
 	          "SELECT"
 			+ " ind.RDB$RELATION_NAME AS TABLE_NAME,"
