@@ -218,7 +218,6 @@ public class FirebirdUDFColumnLoader extends JDBCUDFColumnLoader {
      */
     protected void closeParametersResultSet(ResultSet rs) {
         try {
-            // TODO: Why close statement, not resultset?
             rs.getStatement().close();
         }
         catch (SQLException e) {
@@ -231,7 +230,6 @@ public class FirebirdUDFColumnLoader extends JDBCUDFColumnLoader {
      */
     protected void closeRoutineResultTableResultSet(ResultSet rs) {
         try {
-            // TODO: Why close statement, not resultset?
             rs.getStatement().close();
         }
         catch (SQLException e) {
