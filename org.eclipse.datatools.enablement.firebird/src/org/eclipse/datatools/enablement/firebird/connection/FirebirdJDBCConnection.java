@@ -20,6 +20,8 @@ package org.eclipse.datatools.enablement.firebird.connection;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.datatools.connectivity.IConnectionProfile;
 import org.eclipse.datatools.connectivity.Version;
@@ -36,6 +38,13 @@ public class FirebirdJDBCConnection extends JDBCConnection {
 
     public static final String TECHNOLOGY_ROOT_KEY = "firebird_jdbc";
     public static final String TECHNOLOGY_NAME = "Firebird JDBC Connection";
+    
+    private static final Pattern VERSION_PATTERN = Pattern.compile("(\\w{2})-V(\\d+)\\.(\\d+).(\\d+).(\\d+)");
+    private static final int IDX_PLATFORM = 1;
+    private static final int IDX_MAJOR = 2;
+    private static final int IDX_MINOR = 3;
+    private static final int IDX_RELEASE = 4;
+    private static final int IDX_BUILD = 5;
 
     private Version mTechVersion = Version.NULL_VERSION;
     private Version mServerVersion = Version.NULL_VERSION;
@@ -69,9 +78,27 @@ public class FirebirdJDBCConnection extends JDBCConnection {
     	mServerName = "Firebird";
    		try {
 			DatabaseMetaData dbmd = ((Connection)getRawConnection()).getMetaData();
-			//TODO Add release and build info
-			mServerVersion = new Version(dbmd.getDatabaseMajorVersion(), dbmd.getDatabaseMinorVersion(), 0, "");
-			mTechVersion = new Version(dbmd.getDriverMajorVersion(), dbmd.getDatabaseMinorVersion(), 0, "");
+			String version = dbmd.getDatabaseProductVersion();
+			Matcher matcher = VERSION_PATTERN.matcher(version);
+			try {
+    			if (matcher.find()) {
+    			    String platform = matcher.group(IDX_PLATFORM);
+    			    int major = Integer.parseInt(matcher.group(IDX_MAJOR));
+    			    int minor = Integer.parseInt(matcher.group(IDX_MINOR));
+    			    int release = Integer.parseInt(matcher.group(IDX_RELEASE));
+    			    String build = matcher.group(IDX_BUILD);
+    			    mServerVersion = new Version(major, minor, release, build + "(" + platform + ")");
+    			} else {
+    			    mServerVersion = new Version(dbmd.getDatabaseMajorVersion(), dbmd.getDatabaseMinorVersion(), 0, "");
+    			}
+			} catch (SQLException e) {
+			    // Defaults
+			}
+			try {
+			    mTechVersion = new Version(dbmd.getJDBCMajorVersion(), dbmd.getJDBCMinorVersion(), 0, "");
+			} catch (SQLException e) {
+			    // Defaults
+			}
 		} catch (SQLException e) {
 			// Defaults
 		}
