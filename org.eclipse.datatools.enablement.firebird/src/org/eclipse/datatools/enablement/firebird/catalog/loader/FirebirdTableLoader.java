@@ -47,12 +47,6 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 
 	private static final String COLUMN_TRIGGER_COUNT = "TRIGGER_COUNT";
 
-// TODO Remove or find usage?
-//	private static final String[] USER_TABLE_TYPES = { TYPE_TABLE, TYPE_VIEW,
-//			TYPE_GLOBAL_TEMPORARY };
-//
-//	private static final String[] SYSTEM_TABLE_TYPES = { TYPE_SYSTEM_TABLE };
-
 	private static final String SYSTEM_TABLE_SELECT = 
 	          "SELECT "
 			+ " NULL AS table_cat,"
