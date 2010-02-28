@@ -72,22 +72,34 @@ public class FirebirdTrigger extends TriggerImpl {
 		int slot2 = (type & 0x18) >>> 3; // (type & 00011000) >> 3
 		// Select slot3 (s3)
 		int slot3 = (type & 0x60) >>> 5; // (type & 01100000) >> 5
-
-		if (slot1 == 1 || slot2 == 1 || slot3 == 1) {
-			setInsertType(true);
-		}
-		// NO ELSE! Firebird 1.5 and higher support multi-action triggers
-		if (slot1 == 2 || slot2 == 2 || slot3 == 2) {
-			setUpdateType(true);
-		}
-		// NO ELSE! Firebird 1.5 and higher support multi-action triggers
-		if (slot1 == 3 || slot2 == 3 || slot3 == 3) {
-			setDeleteType(true);
-		}
-
-		/* TODO Decide whether to store actual slot order (is significant in Firebird)
-		 * for DDL generation (for correct INSERT OR UPDATE OR DELETE order)
-		 */
+		
+		processSlot(slot1);
+		processSlot(slot2);
+		processSlot(slot3);
+	}
+	
+	/**
+	 * Process the slot value and set the appropriate trigger type (update, delete or insert).
+	 * 
+	 * @param slot Slot value (0 : None, 1: Insert, 2: Update, 3: Delete)
+	 */
+	private void processSlot(int slot) {
+	    switch (slot) {
+	        case 0:
+	            // Do nothing
+	            break;
+	        case 1:
+	            setInsertType(true);
+	            break;
+	        case 2:
+	            setUpdateType(true);
+	            break;
+	        case 3:
+	            setDeleteType(true);
+	            break;
+            default:
+                throw new IllegalArgumentException("Unexpected value for slot (expecting 0, 1, 2 or 3): " + slot);
+	    }
 	}
 
 	/**
