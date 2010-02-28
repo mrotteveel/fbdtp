@@ -32,7 +32,7 @@ public class FirebirdConversionUtil {
 
 	private static Map charSets = new HashMap();
 	private static Map charSetsInversed = new HashMap();
-	//TODO Complete list?
+
 	static {
 		charSets.put("NONE", Integer.valueOf(0));
 		charSets.put("OCTETS", Integer.valueOf(1));
@@ -41,9 +41,19 @@ public class FirebirdConversionUtil {
 		charSets.put("UTF8", Integer.valueOf(4));
 		charSets.put("SJIS_0208", Integer.valueOf(5));
 		charSets.put("EUCJ_0208", Integer.valueOf(6));
+		// #define   CS_JIS_0208            7  /* JIS 0208; 1990   */
+		// #define   CS_UNICODE_UCS2        8  /* UNICODE v 1.10   */
+		charSets.put("DOS737", Integer.valueOf(9));
 		charSets.put("DOS437", Integer.valueOf(10));
 		charSets.put("DOS850", Integer.valueOf(11));
 		charSets.put("DOS865", Integer.valueOf(12));
+		charSets.put("DOS860", Integer.valueOf(13));
+		charSets.put("DOS863", Integer.valueOf(14));
+		charSets.put("DOS775", Integer.valueOf(15));
+        charSets.put("DOS858", Integer.valueOf(16));
+        charSets.put("DOS862", Integer.valueOf(17));
+        charSets.put("DOS864", Integer.valueOf(18));
+        charSets.put("NEXT", Integer.valueOf(19));
 		charSets.put("ISO8859_1", Integer.valueOf(21));
 		charSets.put("ISO8859_2", Integer.valueOf(22));
 		charSets.put("ISO8859_3", Integer.valueOf(23));
@@ -54,34 +64,31 @@ public class FirebirdConversionUtil {
 		charSets.put("ISO8859_8", Integer.valueOf(38));
 		charSets.put("ISO8859_9", Integer.valueOf(39));
 		charSets.put("ISO8859_13 ", Integer.valueOf(40));
+		charSets.put("KSC_5601 ", Integer.valueOf(44));
 		charSets.put("DOS852", Integer.valueOf(45));
 		charSets.put("DOS857", Integer.valueOf(46));
-		charSets.put("DOS860", Integer.valueOf(13));
 		charSets.put("DOS861", Integer.valueOf(47));
-		charSets.put("DOS863", Integer.valueOf(14));
-		charSets.put("CYRL", Integer.valueOf(50));
-		charSets.put("DOS737", Integer.valueOf(9));
-		charSets.put("DOS775", Integer.valueOf(15));
-		charSets.put("DOS858", Integer.valueOf(16));
-		charSets.put("DOS862", Integer.valueOf(17));
-		charSets.put("DOS864", Integer.valueOf(18));
 		charSets.put("DOS866", Integer.valueOf(48));
-		charSets.put("DOS869", Integer.valueOf(49));
+        charSets.put("DOS869", Integer.valueOf(49));
+		charSets.put("CYRL", Integer.valueOf(50));
 		charSets.put("WIN1250", Integer.valueOf(51));
 		charSets.put("WIN1251", Integer.valueOf(52));
 		charSets.put("WIN1252", Integer.valueOf(53));
 		charSets.put("WIN1253", Integer.valueOf(54));
 		charSets.put("WIN1254", Integer.valueOf(55));
-		charSets.put("NEXT", Integer.valueOf(19));
+		charSets.put("BIG_5", Integer.valueOf(56));
+		charSets.put("GB_2312", Integer.valueOf(57));
 		charSets.put("WIN1255", Integer.valueOf(58));
 		charSets.put("WIN1256", Integer.valueOf(59));
 		charSets.put("WIN1257", Integer.valueOf(60));
-		charSets.put("KSC_5601 ", Integer.valueOf(44));
-		charSets.put("BIG_5", Integer.valueOf(56));
-		charSets.put("GB_2312", Integer.valueOf(57));
+		// #define   CS_UTF16              61  /* UTF-16 */
+		// #define   CS_UTF32              62  /* UTF-32 */
 		charSets.put("KOI8R", Integer.valueOf(63));
 		charSets.put("KOI8U", Integer.valueOf(64));
 		charSets.put("WIN1258", Integer.valueOf(65));
+		// #define   CS_TIS620             66  /* TIS620 */
+		// #define   CS_GBK                67  /* GBK */
+		// #define   CS_CP943C             68  /* CP943C */
 
 		// create an inverted map
 		for (Iterator iter = charSets.entrySet().iterator(); iter.hasNext();) {
@@ -91,7 +98,6 @@ public class FirebirdConversionUtil {
 		}
 	};
 
-	//TODO Verify (and add) other types
 	private static final short smallint_type = 7;
 	private static final short integer_type = 8;
 	private static final short quad_type = 9;
