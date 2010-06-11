@@ -36,7 +36,6 @@ import org.eclipse.datatools.modelbase.sql.constraints.Index;
 import org.eclipse.datatools.modelbase.sql.constraints.IndexMember;
 import org.eclipse.datatools.modelbase.sql.constraints.ReferenceConstraint;
 import org.eclipse.datatools.modelbase.sql.constraints.TableConstraint;
-import org.eclipse.datatools.modelbase.sql.routines.Function;
 import org.eclipse.datatools.modelbase.sql.routines.Parameter;
 import org.eclipse.datatools.modelbase.sql.routines.Procedure;
 import org.eclipse.datatools.modelbase.sql.routines.Routine;
@@ -78,17 +77,18 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 
 	public String createView(ViewTable view, boolean quoteIdentifiers,
 			boolean qualifyNames) {
-		String viewDefinition = CREATE + SPACE;
-		viewDefinition += VIEW + SPACE
-				+ getName(view, quoteIdentifiers, qualifyNames) + SPACE;
+	    StringBuilder viewDefinition = new StringBuilder();
+		viewDefinition.append(CREATE).append(SPACE);
+		viewDefinition.append(VIEW).append(SPACE)
+				.append(getName(view, quoteIdentifiers, qualifyNames)).append(SPACE);
 
 		String columns = getViewColumnList(view);
 		if (columns != null) {
-			viewDefinition += LEFT_PARENTHESIS + columns + RIGHT_PARENTHESIS
-					+ SPACE;
+			viewDefinition.append(LEFT_PARENTHESIS).append(columns).append(RIGHT_PARENTHESIS)
+					.append(SPACE);
 		}
-		viewDefinition += AS + NEWLINE;
-		viewDefinition += view.getQueryExpression().getSQL();
+		viewDefinition.append(AS).append(NEWLINE);
+		viewDefinition.append(view.getQueryExpression().getSQL());
 		CheckType checkType = view.getCheckType();
 		if (checkType == CheckType.CASCADED_LITERAL) {
 			// do nothing here - WITH CHECK OPTION is part of the SQL source
@@ -99,7 +99,7 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 			// we don't support it
 			throw new IllegalStateException();
 		}
-		return viewDefinition;
+		return viewDefinition.toString();
 	}
 	
 	public String createTrigger(Trigger trigger,
@@ -113,7 +113,7 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 
 	public String createFirebirdTrigger(FirebirdTrigger trigger,
 			boolean quoteIdentifiers, boolean qualifyNames) {
-		StringBuffer statement = new StringBuffer();
+		StringBuilder statement = new StringBuilder();
 		statement.append(CREATE).append(SPACE).append(TRIGGER).append(SPACE);
 		statement.append(getName(trigger, quoteIdentifiers, qualifyNames))
 				.append(SPACE);
@@ -169,8 +169,9 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 			DatabaseMetaData dbmd = ((ICatalogObject)trigger.getSchema()).getConnection().getMetaData();
 			Class metaClass = dbmd.getClass();
 			Method getTriggerSourceCode = metaClass.getMethod("getTriggerSourceCode", new Class[] {String.class});
-			Object result = getTriggerSourceCode.invoke(dbmd, new Object[] {trigger.getName()});
-			statement.append((String)result);
+			String result = (String)getTriggerSourceCode.invoke(dbmd, new Object[] {trigger.getName()});
+			result = result.replaceAll("\r?\n", NEWLINE);
+			statement.append(result);
 		} catch (SQLException e) {
 			statement.append("/* WARNING! ERROR while loading trigger body occured! */");
 		} catch (SecurityException e) {
@@ -197,7 +198,7 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 
 	public String createFirebirdProcedure(Procedure procedure,
 			boolean quoteIdentifiers, boolean qualifyNames) {
-		StringBuffer statement = new StringBuffer();
+		StringBuilder statement = new StringBuilder();
 
 		statement.append(CREATE).append(SPACE).append(PROCEDURE).append(SPACE);
 		statement.append(getName(procedure, quoteIdentifiers, qualifyNames))
@@ -221,13 +222,15 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 			statement.append(RIGHT_PARENTHESIS).append(NEWLINE);
 		}
 		statement.append(AS).append(NEWLINE);
-		statement.append(procedure.getSource().getBody());
+		String body = procedure.getSource().getBody();
+		body = body.replaceAll("\r?\n", NEWLINE);
+        statement.append(body);
 
 		return statement.toString();
 	}
 
 	protected void appendProcedureParameterList(Schema schema,
-			StringBuffer statement, List params) {
+			StringBuilder statement, List params) {
 		for (Iterator iter = params.iterator(); iter.hasNext();) {
 			TypedElement element = (TypedElement) iter.next();
 			if (element instanceof Column) {
@@ -262,7 +265,7 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 	
 	public String createFirebirdFunction(FirebirdUDF udf, boolean quoteIdentifiers,
 			boolean qualifyNames) {
-		StringBuffer statement = new StringBuffer();
+		StringBuilder statement = new StringBuilder();
 
 		statement.append(DECLARE).append(SPACE).append(EXTERNAL).append(SPACE);
 		statement.append(FUNCTION).append(SPACE);
@@ -372,7 +375,7 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 	
 	public String dropFirebirdFunction(FirebirdUDF function, boolean quoteIdentifiers,
 			boolean qualifyNames) {
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 
 		result.append(DROP).append(SPACE).append(EXTERNAL).append(SPACE);
 		result.append(FUNCTION).append(
@@ -383,7 +386,7 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 	
 	public String dropSequence(Sequence o, boolean quoteIdentifiers,
 			boolean qualifyNames) {
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 
 		result.append(DROP).append(SPACE).append(SEQUENCE).append(SPACE);
 		result.append(getName(o, quoteIdentifiers, qualifyNames));
@@ -393,7 +396,7 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 
 	public String createSequence(Sequence o, boolean quoteIdentifiers,
 			boolean qualifyNames) {
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 
 		result.append(CREATE).append(SPACE).append(SEQUENCE).append(SPACE);
 		result.append(getName(o, quoteIdentifiers, qualifyNames));
@@ -443,20 +446,6 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 		return super.getName(trigger, quoteIdentifiers, qualifyNames);
 	}
 
-	protected String getParameterListClause(Routine routine,
-			boolean quoteIdentifiers) {
-		return super.getParameterListClause(routine, quoteIdentifiers);
-	}
-
-	protected String getParentKeyColumns(Index index, boolean quoteIdentifiers) {
-		return super.getParentKeyColumns(index, quoteIdentifiers);
-	}
-
-	protected String getReturnsClause(Function function,
-			boolean quoteIdentifiers) {
-		return super.getReturnsClause(function, quoteIdentifiers);
-	}
-
 	protected String getColumnString(Column column, boolean quoteIdentifiers) {
 		quoteIdentifiers = !isUpperCase(column.getName());
 		return super.getColumnString(column, quoteIdentifiers);
@@ -470,15 +459,50 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 		}
 		return columnName;
 	}
+	
+	/**
+	 * Retrieves the index members.
+	 * <p>
+	 * Some DTP implementations use includedMembers for index columns, others use Members, this satisfy both.
+	 * </p>
+	 * 
+	 * @param index Index to return members for.
+	 * @return List with index members
+	 */
+	protected EList getIndexMembers(Index index) {
+	    EList members = index.getIncludedMembers();
+        if (members == null || members.isEmpty()) {
+            members = index.getMembers();
+        }
+        return members;
+	}
+	
+	public String createIndex(Index index, boolean quoteIdentifiers, boolean qualifyNames) {
+	    StringBuilder statement = new StringBuilder(CREATE + SPACE);
+        if(index.isUnique()) {
+            statement.append(UNIQUE).append(SPACE);
+        }
+        
+        // Firebird indices are globally ascending or descending
+        EList members = getIndexMembers(index);
+        if (!members.isEmpty()) {
+            IndexMember m = (IndexMember)members.get(0);
+            statement.append(m.getIncrementType().getName()).append(SPACE);
+        }
+        
+        statement.append(INDEX).append(SPACE).append(getName(index, quoteIdentifiers, qualifyNames)).append(SPACE).append(ON).append(SPACE)
+            .append(getName(index.getTable(), quoteIdentifiers, qualifyNames)).append(SPACE).append(LEFT_PARENTHESIS)
+            .append(getIndexKeyColumns(index, quoteIdentifiers)).append(RIGHT_PARENTHESIS);
+        return statement.toString();
+    }
 
 	protected String getIndexKeyColumns(Index index, boolean quoteIdentifiers) {
-		StringBuffer result = new StringBuffer();
-		Iterator it = index.getIncludedMembers().iterator();
+	    StringBuilder result = new StringBuilder();
+		EList members = getIndexMembers(index);
+        Iterator it = members.iterator();
 		while (it.hasNext()) {
 			IndexMember m = (IndexMember) it.next();
 			result.append(getName(m.getColumn(), true));
-			result.append(SPACE);
-			result.append(m.getIncrementType().getName());
 
 			if (it.hasNext())
 				result.append(COMMA).append(SPACE);
@@ -488,7 +512,7 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 	}
 
 	protected String getViewColumnList(ViewTable view) {
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 		Iterator it = view.getColumns().iterator();
 		while (it.hasNext()) {
 			Column c = (Column) it.next();
@@ -503,7 +527,7 @@ public class FirebirdDdlBuilder extends GenericDdlBuilder {
 
 	protected String getKeyColumns(ReferenceConstraint constraint,
 			boolean quoteIdentifiers) {
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 		Iterator it = constraint.getMembers().iterator();
 		while (it.hasNext()) {
 			Column c = (Column) it.next();
