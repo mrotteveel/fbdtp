@@ -18,19 +18,15 @@
 package org.eclipse.datatools.enablement.firebird.catalog.loader;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.List;
 
 import org.eclipse.datatools.connectivity.sqm.core.rte.ICatalogObject;
 import org.eclipse.datatools.connectivity.sqm.loader.IConnectionFilterProvider;
 import org.eclipse.datatools.connectivity.sqm.loader.JDBCTableIndexLoader;
 import org.eclipse.datatools.enablement.firebird.Activator;
-import org.eclipse.datatools.modelbase.sql.constraints.Index;
-import org.eclipse.datatools.modelbase.sql.constraints.IndexMember;
-import org.eclipse.datatools.modelbase.sql.tables.Column;
 
 /**
  * Index loader for the Firebird database.
@@ -41,54 +37,65 @@ import org.eclipse.datatools.modelbase.sql.tables.Column;
  */
 public class FirebirdIndexLoader extends JDBCTableIndexLoader {
 
-    //TODO Do we actually need to differentiate between system and non-system objects?
 	private static final String GET_INDEX_INFO = 
 	          "SELECT"
-			+ " ind.RDB$RELATION_NAME AS TABLE_NAME,"
-			+ " ind.RDB$UNIQUE_FLAG AS NON_UNIQUE,"
-			+ " ind.RDB$INDEX_NAME as INDEX_NAME,"
-			+ " ise.rdb$field_position+1 as ORDINAL_POSITION,"
-			+ " ise.rdb$field_name as COLUMN_NAME,"
-			+ " ind.RDB$INDEX_TYPE as ASC_OR_DESC "
+			+ "  NULL as TABLE_CAT "
+	        + ", NULL as TABLE_SCHEM "
+	        + ", TRIM(ind.RDB$RELATION_NAME) AS TABLE_NAME "
+	        + ", CASE ind.RDB$UNIQUE_FLAG "
+	        + "    WHEN 1 THEN 'F'"
+	        + "    ELSE 'T'"
+	        + "  END AS NON_UNIQUE "
+	        + ", NULL as INDEX_QUALIFIER "
+	        + ", TRIM(ind.RDB$INDEX_NAME) as INDEX_NAME "
+	        + ", " + DatabaseMetaData.tableIndexOther + " as TYPE "
+	        + ", ise.rdb$field_position + 1 as ORDINAL_POSITION "
+	        + ", TRIM(ise.rdb$field_name) as COLUMN_NAME "
+	        + ", CASE ind.RDB$INDEX_TYPE "
+	        + "    WHEN 1 THEN 'D' "
+	        + "    ELSE 'A' " 
+	        + "  END as ASC_OR_DESC "
+	        + ", 0 as CARDINALITY "
+	        + ", 0 as \"PAGES\" "
+	        + ", NULL as FILTER_CONDITION "
 			+ "FROM"
 			+ " rdb$indices ind,"
 			+ " rdb$index_segments ise "
 			+ "WHERE"
 			+ " ind.rdb$index_name = ise.rdb$index_name"
 			+ " AND ind.rdb$relation_name = ?"
-			+ " AND ind.rdb$system_flag = ?"
 			+ " AND NOT EXISTS ("
 			+ "  SELECT * FROM rdb$relation_constraints rc"
 			+ "  WHERE rc.rdb$index_name = ind.rdb$index_name) "
-			+ "ORDER BY 2, 3, 4";
-
-	private final boolean systemIndexes;
+			+ "ORDER BY 4, 6, 8";
+	
+	/**
+	 * Constructs the index loader.
+	 */
+	public FirebirdIndexLoader() {
+	    super(null, null);
+	}
 
 	/**
+	 * Constructs the index loader with a filter.
 	 * 
      * @param catalogObject the Table object upon which this loader operates.
      * @param connectionFilterProvider the filter provider used for filtering
      *        the "index" objects being loaded
-	 * @param systemIndexes true: system indices, false: normal indices
 	 */
 	public FirebirdIndexLoader(ICatalogObject catalogObject,
-			IConnectionFilterProvider connectionFilterProvider,
-			boolean systemIndexes) {
+			IConnectionFilterProvider connectionFilterProvider) {
 		super(catalogObject, connectionFilterProvider);
-
-		this.systemIndexes = systemIndexes;
 	}
 
 	/**
+	 * Constructs the index loader.
 	 * 
      * @param catalogObject the Table object upon which this loader operates.
 	 * @param systemIndexes true: system indices, false: normal indices
 	 */
-	public FirebirdIndexLoader(ICatalogObject catalogObject,
-			boolean systemIndexes) {
+	public FirebirdIndexLoader(ICatalogObject catalogObject) {
 		super(catalogObject);
-
-		this.systemIndexes = systemIndexes;
 	}
 
 	/**
@@ -106,8 +113,7 @@ public class FirebirdIndexLoader extends JDBCTableIndexLoader {
 			PreparedStatement stmt = connection
 					.prepareStatement(GET_INDEX_INFO);
 			stmt.setString(1, getTable().getName());
-			stmt.setInt(2, systemIndexes ? 1 : 0);
-
+			
 			return stmt.executeQuery();
 		} catch (RuntimeException e) {
 			SQLException error = new SQLException(
@@ -115,90 +121,5 @@ public class FirebirdIndexLoader extends JDBCTableIndexLoader {
 			error.initCause(e);
 			throw error;
 		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableIndexLoader#loadIndexes(java.util.List, java.util.Collection)
-	 */
-	public void loadIndexes(List containmentList, Collection existingIndexes)
-			throws SQLException {
-		ResultSet rs = null;
-		try {
-			initActiveFilter();
-			Index index = null;
-			for (rs = createResultSet(); rs.next();) {
-				String indexName = rs.getString(COLUMN_INDEX_NAME);
-
-				if (indexName != null)
-					indexName = indexName.trim();
-
-				if (indexName == null || isFiltered(indexName)) {
-					continue;
-				}
-
-				if (index == null || !index.getName().equals(indexName)) {
-					index = (Index) getAndRemoveSQLObject(existingIndexes,
-							indexName);
-					if (index == null) {
-						index = createIndex();
-						initIndex(index, rs);
-					} else {
-						initIndex(index, rs);
-						index.getIncludedMembers().clear();
-						if (index instanceof ICatalogObject) {
-							((ICatalogObject) index).refresh();
-						}
-					}
-					containmentList.add(index);
-				}
-
-				String columnName = rs.getString(COLUMN_COLUMN_NAME);
-				if (columnName != null)
-					columnName = columnName.trim();
-
-				Column column = findColumn(columnName);
-				if (column == null) {
-					continue;
-				}
-
-				IndexMember im = createIndexMember();
-				if (im == null) {
-					continue;
-				}
-
-				initIndexMember(im, column, rs);
-				index.getIncludedMembers().add(im);
-			}
-		} finally {
-			if (rs != null) {
-				closeResultSet(rs);
-			}
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableIndexLoader#initIndexMember(org.eclipse.datatools.modelbase.sql.constraints.IndexMember, org.eclipse.datatools.modelbase.sql.tables.Column, java.sql.ResultSet)
-	 */
-	protected void initIndexMember(IndexMember im, Column column, ResultSet rs)
-			throws SQLException {
-		im.setColumn(column);
-		String ascOrDesc = rs.getString(COLUMN_ASC_OR_DESC);
-		im.setIncrementType(getIncrementType(ascOrDesc != null ? ascOrDesc
-				.trim() : null));
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableIndexLoader#initIndex(org.eclipse.datatools.modelbase.sql.constraints.Index, java.sql.ResultSet)
-	 */
-	protected void initIndex(Index index, ResultSet rs) throws SQLException {
-		String columnIndexName = rs.getString(COLUMN_INDEX_NAME);
-		index.setName(columnIndexName != null ? columnIndexName.trim() : null);
-
-		index.setUnique(!rs.getBoolean(COLUMN_NON_UNIQUE));
-		index.setSchema(findSchema(null));
-		index.setClustered(false);
 	}
 }

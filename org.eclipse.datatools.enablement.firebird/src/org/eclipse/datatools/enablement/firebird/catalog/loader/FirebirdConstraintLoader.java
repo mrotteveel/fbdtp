@@ -62,6 +62,13 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
         cascadeMap.put("NO ACTION", ReferentialActionType.NO_ACTION_LITERAL);
         CASCADE_TYPE_MAP = Collections.unmodifiableMap(cascadeMap);
     }
+    
+    /**
+     * Constructs the constraint loader.
+     */
+    public FirebirdConstraintLoader() {
+        super(null, null);
+    }
 
     /**
      * Constructs the constraint loader with a filter.

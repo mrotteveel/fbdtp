@@ -115,5 +115,17 @@
             provider="org.eclipse.datatools.enablement.firebird.catalog.loader.FirebirdSchemaLoader"
             version="2.1">
       </overrideLoader>
+      <overrideLoader
+            eclass="org.eclipse.datatools.modelbase.sql.constraints.Index"
+            product="Firebird"
+            provider="org.eclipse.datatools.enablement.firebird.catalog.loader.FirebirdIndexLoader"
+            version="2.1">
+      </overrideLoader>
+      <overrideLoader
+            eclass="org.eclipse.datatools.modelbase.sql.constraints.Constraint"
+            product="Firebird"
+            provider="org.eclipse.datatools.enablement.firebird.catalog.loader.FirebirdConstraintLoader"
+            version="2.1">
+      </overrideLoader>
    </extension>
 </plugin>

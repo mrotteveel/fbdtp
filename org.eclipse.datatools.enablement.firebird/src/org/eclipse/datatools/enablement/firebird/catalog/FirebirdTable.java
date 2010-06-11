@@ -27,11 +27,8 @@ import java.util.List;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCTable;
-import org.eclipse.datatools.connectivity.sqm.loader.JDBCTableConstraintLoader;
-import org.eclipse.datatools.connectivity.sqm.loader.JDBCTableIndexLoader;
 import org.eclipse.datatools.enablement.firebird.Activator;
 import org.eclipse.datatools.enablement.firebird.catalog.loader.FirebirdConstraintLoader;
-import org.eclipse.datatools.enablement.firebird.catalog.loader.FirebirdIndexLoader;
 import org.eclipse.datatools.enablement.firebird.catalog.loader.FirebirdTableLoader;
 import org.eclipse.datatools.modelbase.sql.constraints.CheckConstraint;
 import org.eclipse.datatools.modelbase.sql.constraints.Constraint;
@@ -47,8 +44,6 @@ import org.eclipse.emf.common.util.EList;
  */
 public class FirebirdTable extends JDBCTable {
 
-	private final boolean systemTable;
-
 	private final Object checkConstraintsMutex = new Object();
 	private boolean checkConstraintsLoaded = false;
 
@@ -57,30 +52,6 @@ public class FirebirdTable extends JDBCTable {
 
 	private final Object triggersMutex = new Object();
 	private boolean triggersLoaded = false;
-	
-	/**
-	 * Create a new FirebirdTable
-	 * @param systemTable true if a system table.
-	 */
-	public FirebirdTable(boolean systemTable) {
-	    this.systemTable = true;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCTable#createConstraintLoader()
-	 */
-	protected JDBCTableConstraintLoader createConstraintLoader() {
-		return new FirebirdConstraintLoader(this);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCTable#createIndexLoader()
-	 */
-	protected JDBCTableIndexLoader createIndexLoader() {
-		return new FirebirdIndexLoader(this, systemTable);
-	}
 
 	/*
 	 * (non-Javadoc)

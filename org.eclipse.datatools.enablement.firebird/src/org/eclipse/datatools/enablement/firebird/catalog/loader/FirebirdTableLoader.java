@@ -176,7 +176,7 @@ public class FirebirdTableLoader extends JDBCTableLoader {
 	     * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableLoader.TableFactory#newTable()
 	     */
 		protected Table newTable() {
-			return new FirebirdTable(systemTables);
+			return new FirebirdTable();
 		}
 
 		/*
