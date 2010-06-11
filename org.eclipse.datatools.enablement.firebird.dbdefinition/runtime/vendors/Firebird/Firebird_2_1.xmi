@@ -74,10 +74,17 @@
   </predefinedDataTypeDefinitions>
   <predefinedDataTypeDefinitions xmi:id="BINARY_LARGE_OBJECT_1" defaultSupported="false" primitiveType="BINARY_LARGE_OBJECT" jdbcEnumType="2004" javaClassName="java.sql.Blob">
     <name>BLOB</name>
-    <name>BLOB SUBTYPE 0</name>
+    <name>BLOB SUB_TYPE 0</name>
   </predefinedDataTypeDefinitions>
   <predefinedDataTypeDefinitions xmi:id="CHARACTER_LARGE_OBJECT_1" defaultSupported="false" primitiveType="CHARACTER_LARGE_OBJECT" jdbcEnumType="2005" javaClassName="java.sql.Clob">
-    <name>BLOB SUBTYPE 1</name>
+    <name>BLOB SUB_TYPE 1</name>
+  </predefinedDataTypeDefinitions>
+  <predefinedDataTypeDefinitions xmi:id="BINARY_LARGE_OBJECT_2" defaultSupported="false" primitiveType="BINARY_LARGE_OBJECT" jdbcEnumType="-4" javaClassName="byte[]">
+    <name>BLOB</name>
+    <name>BLOB SUB_TYPE 0</name>
+  </predefinedDataTypeDefinitions>
+  <predefinedDataTypeDefinitions xmi:id="CHARACTER_LARGE_OBJECT_2" defaultSupported="false" primitiveType="CHARACTER_LARGE_OBJECT" jdbcEnumType="-1" javaClassName="java.lang.String">
+    <name>BLOB SUB_TYPE 1</name>
   </predefinedDataTypeDefinitions>
   <storedProcedureDefinition maximumIdentifierLength="31"/>
   <triggerDefinition maximumIdentifierLength="31"/>
