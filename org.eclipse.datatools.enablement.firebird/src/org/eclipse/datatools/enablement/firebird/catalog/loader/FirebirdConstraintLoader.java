@@ -92,65 +92,6 @@ public class FirebirdConstraintLoader extends JDBCTableConstraintLoader {
 		super(catalogObject);
 	}
 
-	private static final String GET_IMPORTED_KEYS = 
-	          "SELECT"
-			+ " null as PKTABLE_CAT," 
-			+ " null as PKTABLE_SCHEM,"
-			+ " PK.RDB$RELATION_NAME as PKTABLE_NAME,"
-			+ " ISP.RDB$FIELD_NAME as PKCOLUMN_NAME,"
-			+ " null as FKTABLE_CAT,"
-			+ " null as FKTABLE_SCHEM,"
-			+ " FK.RDB$RELATION_NAME as FKTABLE_NAME,"
-			+ " ISF.RDB$FIELD_NAME as FKCOLUMN_NAME,"
-			+ " CAST ((ISP.RDB$FIELD_POSITION + 1) as SMALLINT) as KEY_SEQ,"
-			+ " RC.RDB$UPDATE_RULE as UPDATE_RULE,"
-			+ " RC.RDB$DELETE_RULE as DELETE_RULE,"
-			+ " PK.RDB$CONSTRAINT_NAME as PK_NAME,"
-			+ " FK.RDB$CONSTRAINT_NAME as FK_NAME,"
-			+ " null as DEFERRABILITY "
-			+ "FROM"
-			+ " RDB$RELATION_CONSTRAINTS PK,"
-			+ " RDB$RELATION_CONSTRAINTS FK,"
-			+ " RDB$REF_CONSTRAINTS RC,"
-			+ " RDB$INDEX_SEGMENTS ISP,"
-			+ " RDB$INDEX_SEGMENTS ISF "
-			+ "WHERE"
-			+ " FK.RDB$RELATION_NAME = ?"
-			+ " AND FK.RDB$CONSTRAINT_NAME = RC.RDB$CONSTRAINT_NAME"
-			+ " AND PK.RDB$CONSTRAINT_NAME = RC.RDB$CONST_NAME_UQ"
-			+ " AND ISP.RDB$INDEX_NAME = PK.RDB$INDEX_NAME "
-			+ " AND ISF.RDB$INDEX_NAME = FK.RDB$INDEX_NAME "
-			+ " AND ISP.RDB$FIELD_POSITION = ISF.RDB$FIELD_POSITION "
-			+ " ORDER BY 3, 9";
-
-	/**
-	 * Creates a result set to be used by the foreign key constraint loading logic.
-	 * 
-     * @return a result containing the information used to initialize ForeignKey
-     *         objects
-     * 
-     * @throws SQLException if an error occurs
-	 */
-	protected ResultSet createForeignKeyResultSet() throws SQLException {
-		try {
-			Connection connection = getCatalogObject().getConnection();
-
-			PreparedStatement stmt = connection
-					.prepareStatement(GET_IMPORTED_KEYS);
-			stmt.setString(1, getTable().getName());
-
-			return stmt.executeQuery();
-
-		} catch (RuntimeException e) {
-			SQLException error = new SQLException(MessageFormat.format(
-                    Activator.getResourceString("error.constraint.loading"),
-					new Object[] { 
-                        Activator.getResourceString("constraint.foreign") })); //$NON-NLS-1$
-			error.initCause(e);
-			throw error;
-		}
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCTableConstraintLoader#loadForeignKeys(java.util.List, java.util.Collection)
