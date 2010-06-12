@@ -12,7 +12,7 @@
  *
  * Contributors:
  *     Brian Fitzpatrick  - Initial implementation
- *     Mark Rotteveel   - Code cleanup, further development
+ *     Mark Rotteveel     - Code cleanup, further development
  */ 
 
 package org.eclipse.datatools.enablement.firebird.connection;

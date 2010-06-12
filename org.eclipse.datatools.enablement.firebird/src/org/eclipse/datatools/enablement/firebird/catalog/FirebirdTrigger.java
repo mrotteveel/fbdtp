@@ -12,6 +12,7 @@
  *
  * Contributors:
  *     Roman Rokytskyy  - Initial implementation
+ *     Mark Rotteveel   - Code cleanup, further development
  */ 
 
 package org.eclipse.datatools.enablement.firebird.catalog;
@@ -23,6 +24,7 @@ import org.eclipse.datatools.modelbase.sql.tables.impl.TriggerImpl;
  * Trigger implementation for the Firebird database.
  * 
  * @author Roman Rokytskyy
+ * @author Mark Rotteveel
  *
  */
 public class FirebirdTrigger extends TriggerImpl {

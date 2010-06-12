@@ -22,6 +22,7 @@ import org.eclipse.datatools.enablement.firebird.IFBConstants;
 
 /**
  * 
+ * @author Roman Rokytskyy
  * @author Mark Rotteveel
  *
  */
