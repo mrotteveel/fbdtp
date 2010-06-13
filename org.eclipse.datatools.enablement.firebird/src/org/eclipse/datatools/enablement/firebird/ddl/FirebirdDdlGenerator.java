@@ -18,18 +18,26 @@
 package org.eclipse.datatools.enablement.firebird.ddl;
 
 import java.util.Iterator;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.datatools.connectivity.sqm.core.definition.EngineeringOptionID;
 import org.eclipse.datatools.connectivity.sqm.core.rte.EngineeringOption;
 import org.eclipse.datatools.connectivity.sqm.core.rte.IEngineeringCallBack;
 import org.eclipse.datatools.connectivity.sqm.core.rte.fe.GenericDdlGenerator;
+import org.eclipse.datatools.connectivity.sqm.internal.core.rte.EngineeringOptionCategory;
 import org.eclipse.datatools.modelbase.sql.constraints.CheckConstraint;
 import org.eclipse.datatools.modelbase.sql.constraints.ForeignKey;
 import org.eclipse.datatools.modelbase.sql.constraints.Index;
 import org.eclipse.datatools.modelbase.sql.constraints.UniqueConstraint;
+import org.eclipse.datatools.modelbase.sql.datatypes.UserDefinedType;
 import org.eclipse.datatools.modelbase.sql.routines.Procedure;
 import org.eclipse.datatools.modelbase.sql.routines.UserDefinedFunction;
+import org.eclipse.datatools.modelbase.sql.schema.Database;
 import org.eclipse.datatools.modelbase.sql.schema.SQLObject;
+import org.eclipse.datatools.modelbase.sql.schema.Schema;
 import org.eclipse.datatools.modelbase.sql.schema.Sequence;
 import org.eclipse.datatools.modelbase.sql.tables.BaseTable;
 import org.eclipse.datatools.modelbase.sql.tables.PersistentTable;
@@ -260,5 +268,69 @@ public class FirebirdDdlGenerator extends GenericDdlGenerator {
 		return super.dropSQLObjects(elements, quoteIdentifiers, false,
 				progressMonitor, callback);
 	}
-
+	
+	protected EngineeringOption getEngineeringOption(String id, EngineeringOptionCategory general_options, EngineeringOptionCategory additional_element) {
+	    ResourceBundle resource = ResourceBundle.getBundle("org.eclipse.datatools.enablement.firebird.ddl.FirebirdDdlGeneration"); //$NON-NLS-1$
+	    
+	    try {
+	        // Work around for missing resource in DTP
+	        if (id.equalsIgnoreCase(EngineeringOptionID.GENERATE_SEQUENCES))
+                return new EngineeringOption(id,resource.getString("GENERATE_SEQUENCE"), resource.getString("GENERATE_SEQUENCE_DES"),true,additional_element); //$NON-NLS-1$ //$NON-NLS-2$
+	        else
+	            return super.getEngineeringOption(id, general_options, additional_element);
+	    } catch (Exception e) {
+            //The resource was not found
+            e.printStackTrace();
+        }
+        return null;
+	}
+	
+	protected Set getAllContainedDisplayableElementSetDepedency(SQLObject[] elements) {
+	    Set s = new TreeSet();
+	    
+	    for(int i=0; i<elements.length; ++i) {
+	        if(elements[i] instanceof Database || elements[i] instanceof Schema) {
+                s.add(EngineeringOptionID.GENERATE_TABLES);
+                s.add(EngineeringOptionID.GENERATE_INDICES);
+                s.add(EngineeringOptionID.GENERATE_VIEWS);
+                s.add(EngineeringOptionID.GENERATE_TRIGGERS);
+                s.add(EngineeringOptionID.GENERATE_PK_CONSTRAINTS);
+                s.add(EngineeringOptionID.GENERATE_CK_CONSTRAINTS);
+                s.add(EngineeringOptionID.GENERATE_FK_CONSTRAINTS);
+                s.add(EngineeringOptionID.GENERATE_SEQUENCES);
+            } else if (elements[i] instanceof PersistentTable) {
+                s.add(EngineeringOptionID.GENERATE_DATABASE);
+                s.add(EngineeringOptionID.GENERATE_TABLES);
+                s.add(EngineeringOptionID.GENERATE_INDICES);
+                s.add(EngineeringOptionID.GENERATE_TRIGGERS);
+                s.add(EngineeringOptionID.GENERATE_PK_CONSTRAINTS);
+                s.add(EngineeringOptionID.GENERATE_CK_CONSTRAINTS);
+                s.add(EngineeringOptionID.GENERATE_FK_CONSTRAINTS);
+                // TODO find out how to resolve dependencies etc
+                //s.add(EngineeringOptionID.GENERATE_SEQUENCES);
+            } else if (elements[i] instanceof Index) {
+                s.add(EngineeringOptionID.GENERATE_INDICES);
+            } else if (elements[i] instanceof Procedure) {
+                s.add(EngineeringOptionID.GENERATE_STOREDPROCEDURES);
+            } else if (elements[i] instanceof UserDefinedFunction) {
+                s.add(EngineeringOptionID.GENERATE_FUNCTIONS);
+            } else if (elements[i] instanceof ViewTable) {
+                s.add(EngineeringOptionID.GENERATE_VIEWS);
+                s.add(EngineeringOptionID.GENERATE_TRIGGERS);
+            } else if (elements[i] instanceof Trigger) {
+                s.add(EngineeringOptionID.GENERATE_TRIGGERS);
+            } else if (elements[i] instanceof Sequence) {
+                s.add(EngineeringOptionID.GENERATE_SEQUENCES);
+            } else if (elements[i] instanceof UserDefinedType) {
+                s.add(EngineeringOptionID.GENERATE_USER_DEFINED_TYPE);
+            } else if (elements[i] instanceof UniqueConstraint) {
+                s.add(EngineeringOptionID.GENERATE_PK_CONSTRAINTS);
+            } else if(elements[i] instanceof CheckConstraint) {
+                s.add(EngineeringOptionID.GENERATE_CK_CONSTRAINTS);
+            } else if(elements[i] instanceof ForeignKey) {
+                s.add(EngineeringOptionID.GENERATE_FK_CONSTRAINTS);
+            }
+	    }
+	    return s;
+	}
 }
