@@ -329,6 +329,7 @@ public class FirebirdTableLoader extends JDBCTableLoader {
                         MessageFormat.format(
                                 Activator.getResourceString("error.view.multiplequery"),
                                 new Object[] { view.getName() }));
+			query = query.replaceAll("\r?\n", System.getProperty("line.separator"));
 			return query;
 		} finally {
 	         try {
