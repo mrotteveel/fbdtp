@@ -37,6 +37,7 @@ import org.eclipse.datatools.enablement.firebird.Activator;
  */
 public class FirebirdIndexLoader extends JDBCTableIndexLoader {
 
+    // TODO: Skips indices linked to constraints, need to find a way to add those without generating DDL for them
 	private static final String GET_INDEX_INFO = 
 	          "SELECT"
 			+ "  NULL as TABLE_CAT "
