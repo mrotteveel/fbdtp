@@ -1,7 +1,7 @@
 fbdtp
 =====
 
-fbdtp is an [Eclipse Data Tools Project](http://www.eclipse.org/datatools/) implementation for the [Firebird database](http://www.firebirdsql.org/).
+fbdtp is an [Eclipse Data Tools Project](http://projects.eclipse.org/projects/datatools) implementation for the [Firebird database](http://www.firebirdsql.org/).
 
 Binaries are available on http://www.lawinegevaar.nl/firebird
 
