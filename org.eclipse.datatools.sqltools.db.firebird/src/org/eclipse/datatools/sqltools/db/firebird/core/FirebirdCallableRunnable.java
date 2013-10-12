@@ -71,7 +71,7 @@ public class FirebirdCallableRunnable extends CallableSQLResultRunnable {
         case ProcIdentifier.TYPE_SP:
         case ProcIdentifier.TYPE_UDF:
             return constructCALLSPString(proc, LaunchHelper
-                    .readParameterList(configuration), LaunchUI
+                    .readParameterList(configuration), LaunchHelper
                     .getAllParameterDescriptors(proc), quoted_id);
         case ProcIdentifier.TYPE_EVENT:
         // not supported

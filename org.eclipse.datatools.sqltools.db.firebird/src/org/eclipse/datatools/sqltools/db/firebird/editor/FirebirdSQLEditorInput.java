@@ -18,7 +18,7 @@ package org.eclipse.datatools.sqltools.db.firebird.editor;
 
 import org.eclipse.datatools.connectivity.IConnectionProfile;
 import org.eclipse.datatools.sqltools.core.profile.ProfileUtil;
-import org.eclipse.datatools.sqltools.routineeditor.ProcEditorInput;
+import org.eclipse.datatools.sqltools.routineeditor.ui.ProcEditorInput;
 import org.eclipse.datatools.sqltools.sqleditor.SQLEditorConnectionInfo;
 import org.eclipse.datatools.sqltools.sqleditor.SQLEditorStorage;
 import org.eclipse.datatools.sqltools.sqleditor.SQLEditorStorageEditorInput;

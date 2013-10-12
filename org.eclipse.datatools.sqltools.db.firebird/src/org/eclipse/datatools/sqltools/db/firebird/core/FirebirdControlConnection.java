@@ -35,8 +35,8 @@ import org.eclipse.datatools.sqltools.sql.util.ModelUtil;
 import org.eclipse.datatools.sqltools.sqleditor.SQLEditorStorageEditorInput;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.ui.*;
-
 import org.eclipse.datatools.enablement.firebird.FirebirdConversionUtil;
+import org.eclipse.datatools.enablement.firebird.catalog.FirebirdParameter;
 import org.eclipse.datatools.enablement.firebird.catalog.FirebirdProcedure;
 import org.eclipse.datatools.enablement.firebird.catalog.FirebirdUDF;
 
@@ -164,7 +164,7 @@ public class FirebirdControlConnection extends AbstractControlConnection {
             FirebirdUDF udf = (FirebirdUDF) _routine;
             EList parameters = udf.getParameters();
             for (Iterator iter = parameters.iterator(); iter.hasNext();) {
-                FirebirdUDF.Parameter parameter = (FirebirdUDF.Parameter) iter
+            	FirebirdParameter parameter = (FirebirdParameter) iter
                         .next();
 
                 ParameterDescriptor pd = new ParameterDescriptor(_proc
