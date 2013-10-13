@@ -17,12 +17,9 @@
 package org.eclipse.datatools.enablement.firebird.catalog;
 
 import org.eclipse.datatools.connectivity.sqm.core.rte.jdbc.JDBCProcedure;
-import org.eclipse.datatools.connectivity.sqm.loader.JDBCProcedureColumnLoader;
 import org.eclipse.datatools.modelbase.sql.routines.impl.SourceImpl;
 import org.eclipse.datatools.modelbase.sql.schema.Database;
 import org.eclipse.datatools.modelbase.sql.schema.Schema;
-
-import org.eclipse.datatools.enablement.firebird.catalog.loader.FirebirdProcedureColumnLoader;
 
 public class FirebirdProcedure extends JDBCProcedure {
 
@@ -40,10 +37,6 @@ public class FirebirdProcedure extends JDBCProcedure {
     
     public Database getCatalogDatabase() {
         return getSchema().getDatabase();
-    }
-
-    protected JDBCProcedureColumnLoader createParameterLoader() {
-        return new FirebirdProcedureColumnLoader(this);
     }
 
     public void setSourceCode(String code) {
