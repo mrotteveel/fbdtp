@@ -1,10 +1,10 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: DTP Enablement Firebird Database Plug-in
+Bundle-Name: %Plugin.name
 Bundle-SymbolicName: org.eclipse.datatools.enablement.firebird;singleton:=true
 Bundle-Version: 1.0.3.qualifier
 Bundle-Activator: org.eclipse.datatools.enablement.firebird.Activator
-Bundle-Vendor: Eclipse.org
+Bundle-Vendor: %Plugin.providerName
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.datatools.modelbase.sql,
  org.eclipse.datatools.connectivity,
