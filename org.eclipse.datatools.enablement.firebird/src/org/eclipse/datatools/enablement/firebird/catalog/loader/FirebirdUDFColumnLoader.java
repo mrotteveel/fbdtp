@@ -21,6 +21,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Types;
 import java.util.Iterator;
 import java.util.List;
@@ -122,17 +123,11 @@ public class FirebirdUDFColumnLoader extends JDBCUDFColumnLoader {
         if (pdtd == null) {
             pdtd = getDatabaseDefinition().getPredefinedDataTypeDefinition(typeName);
         }
-        // TODO Statement below conflicts with statement 7 lines down
         if (pdtd == null)
             return;
         
         if (typeCode == Types.OTHER || typeCode == Types.REF)
             return;
-        // TODO statement below conflicts with statement 5 lines above   
-        if (pdtd == null) {
-            // Use the first element by default
-            pdtd = (PredefinedDataTypeDefinition) pdtds.get(0);
-        }
 
         PredefinedDataType pdt = getDatabaseDefinition().getPredefinedDataType(pdtd);
         
@@ -217,11 +212,18 @@ public class FirebirdUDFColumnLoader extends JDBCUDFColumnLoader {
      * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineColumnLoader#closeParametersResultSet(java.sql.ResultSet)
      */
     protected void closeParametersResultSet(ResultSet rs) {
-        try {
-            rs.getStatement().close();
-        }
-        catch (SQLException e) {
-        }
+    	Statement stmt = null;
+    	try {
+    		stmt = rs.getStatement();
+    	} catch (SQLException e) { }
+    	try {
+    		super.closeParametersResultSet(rs);
+    	} finally {
+	        try {
+	            if (stmt != null) stmt.close();
+	        }
+	        catch (SQLException e) { }
+    	}
     }
     
     /*
@@ -229,10 +231,17 @@ public class FirebirdUDFColumnLoader extends JDBCUDFColumnLoader {
      * @see org.eclipse.datatools.connectivity.sqm.loader.JDBCRoutineColumnLoader#closeRoutineResultTableResultSet(java.sql.ResultSet)
      */
     protected void closeRoutineResultTableResultSet(ResultSet rs) {
-        try {
-            rs.getStatement().close();
-        }
-        catch (SQLException e) {
-        }
+    	Statement stmt = null;
+    	try {
+    		stmt = rs.getStatement();
+    	} catch (SQLException e) { }
+    	try {
+    		super.closeRoutineResultTableResultSet(rs);
+    	} finally {
+	        try {
+	            if (stmt != null) stmt.close();
+	        }
+	        catch (SQLException e) { }
+    	}
     }
 }
