@@ -3,7 +3,7 @@ fbdtp
 
 fbdtp is an [Eclipse Data Tools Project](http://projects.eclipse.org/projects/datatools) implementation for the [Firebird database](http://www.firebirdsql.org/).
 
-Binaries are available on http://www.lawinegevaar.nl/firebird
+Binaries are available in [the releases area](https://github.com/mrotteveel/fbdtp/releases) and on http://www.lawinegevaar.nl/firebird (old releases only).
 
 The code is licensed under the [Eclipse Public License v1.0](http://www.eclipse.org/legal/epl-v10.html).
 
